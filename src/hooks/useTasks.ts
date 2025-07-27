@@ -1,152 +1,98 @@
-import { useState, useCallback } from 'react';
-import type { Task, CreateTaskInput, UpdateTaskInput } from '@/types/task';
-import { TaskStatus } from '@/types/task';
-
-const sampleTasks: Task[] = [
-  {
-    id: '1',
-    title: 'Welcome to your Todo App!',
-    description:
-      'This is a sample task to get you started. You can edit, complete, or delete it.',
-    tagIds: ['tag-welcome', 'tag-sample'],
-    completed: false,
-    status: TaskStatus.BACKLOG,
-    createdAt: new Date(Date.now() - 86400000), // 1 day ago
-    updatedAt: new Date(Date.now() - 86400000),
-  },
-  {
-    id: '2',
-    title: 'Try creating a new task',
-    description: 'Click the "Add New Task" button to create your first task.',
-    tagIds: ['tag-tutorial'],
-    completed: false,
-    status: TaskStatus.SCHEDULED,
-    createdAt: new Date(Date.now() - 43200000), // 12 hours ago
-    updatedAt: new Date(Date.now() - 43200000),
-  },
-  {
-    id: '3',
-    title: 'Explore the features',
-    description:
-      'Try using filters, tags, and the search functionality to organize your tasks.',
-    tagIds: ['tag-features', 'tag-tutorial'],
-    completed: true,
-    status: TaskStatus.COMPLETED,
-    createdAt: new Date(Date.now() - 21600000), // 6 hours ago
-    updatedAt: new Date(Date.now() - 10800000), // 3 hours ago
-  },
-  {
-    id: '4',
-    title: 'Implement drag and drop',
-    description: 'Add drag and drop functionality to the Kanban board.',
-    tagIds: ['tag-development', 'tag-feature'],
-    completed: false,
-    status: TaskStatus.PROGRESS,
-    createdAt: new Date(Date.now() - 7200000), // 2 hours ago
-    updatedAt: new Date(Date.now() - 7200000),
-  },
-  {
-    id: '5',
-    title: 'First backlog task',
-    description: 'This is the first task in backlog for testing reordering.',
-    tagIds: ['tag-test'],
-    completed: false,
-    status: TaskStatus.BACKLOG,
-    createdAt: new Date(Date.now() - 3600000), // 1 hour ago
-    updatedAt: new Date(Date.now() - 3600000),
-  },
-  {
-    id: '6',
-    title: 'Second backlog task',
-    description: 'This is the second task in backlog for testing reordering.',
-    tagIds: ['tag-test'],
-    completed: false,
-    status: TaskStatus.BACKLOG,
-    createdAt: new Date(Date.now() - 1800000), // 30 minutes ago
-    updatedAt: new Date(Date.now() - 1800000),
-  },
-  {
-    id: '7',
-    title: 'Third backlog task',
-    description: 'This is the third task in backlog for testing reordering.',
-    tagIds: ['tag-test'],
-    completed: false,
-    status: TaskStatus.BACKLOG,
-    createdAt: new Date(Date.now() - 900000), // 15 minutes ago
-    updatedAt: new Date(Date.now() - 900000),
-  },
-];
+import {
+  useDeleteTaskMutation,
+  useGetAllTasksQuery,
+  useUpdateTaskMutation,
+} from "@/redux/features/taskApi";
+import type { Task, UpdateTaskInput } from "@/types/task";
+import { TaskStatus } from "@/types/task";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export const useTasks = () => {
-  const [tasks, setTasks] = useState<Task[]>(sampleTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
 
-  const createTask = useCallback((input: CreateTaskInput) => {
-    const newTask: Task = {
-      id: crypto.randomUUID(),
-      title: input.title,
-      description: input.description,
-      tagIds: input.tagIds,
-      completed: false,
-      status: TaskStatus.BACKLOG,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+  const { data: apiTasks, isLoading } = useGetAllTasksQuery({});
+  // Redux API hooks
+  const [updateTaskMutation] = useUpdateTaskMutation();
+  const [deleteTaskMutation] = useDeleteTaskMutation();
 
-    setTasks((prev) => [...prev, newTask]);
-    return newTask;
-  }, []);
+  useEffect(() => {
+    if (apiTasks?.data) setTasks(apiTasks.data);
+  }, [apiTasks]);
 
-  const updateTask = useCallback((id: string, updates: UpdateTaskInput) => {
-    setTasks((prev) =>
-      prev.map((task) => {
-        if (task.id === id) {
-          const updatedTask = { ...task, ...updates, updatedAt: new Date() };
-          // Sync completed status with task status
-          if (updates.status === TaskStatus.COMPLETED) {
-            updatedTask.completed = true;
-          } else if (
-            updates.status &&
-            [
-              TaskStatus.BACKLOG,
-              TaskStatus.SCHEDULED,
-              TaskStatus.PROGRESS,
-            ].includes(updates.status) &&
-            updates.completed === undefined
-          ) {
-            updatedTask.completed = false;
-          }
-          // Sync status with completed flag
-          if (updates.completed === true && !updates.status) {
-            updatedTask.status = TaskStatus.COMPLETED;
-          } else if (
-            updates.completed === false &&
-            task.status === TaskStatus.COMPLETED
-          ) {
-            updatedTask.status = TaskStatus.BACKLOG;
-          }
-          return updatedTask;
+  const updateTask = useCallback(
+    async (id: string, updates: UpdateTaskInput) => {
+      try {
+        const updatedTask = {
+          ...updates,
+          updatedAt: new Date(),
+        };
+        // Sync completed status with task status
+        if (updates.status === TaskStatus.COMPLETED) {
+          updatedTask.completed = true;
+        } else if (
+          updates.status &&
+          [
+            TaskStatus.BACKLOG,
+            TaskStatus.SCHEDULED,
+            TaskStatus.PROGRESS,
+          ].includes(updates.status) &&
+          updates.completed === undefined
+        ) {
+          updatedTask.completed = false;
         }
-        return task;
-      })
-    );
-  }, []);
+        // Sync status with completed flag
+        if (updates.completed === true && !updates.status) {
+          updatedTask.status = TaskStatus.COMPLETED;
+        } else if (updates.completed === false) {
+          updatedTask.status = TaskStatus.BACKLOG;
+        }
 
-  const deleteTask = useCallback((id: string) => {
-    setTasks((prev) => prev.filter((task) => task.id !== id));
-  }, []);
+        await updateTaskMutation({ id, data: updates });
+      } catch (error) {
+        toast.error("Failed to update task");
+        throw error;
+      }
+    },
+    [],
+  );
+
+  const deleteTask = useCallback(
+    async (id: string) => {
+      // Store original task for rollback
+      const originalTask = tasks.find((task) => task.id === id);
+      if (!originalTask) return;
+
+      try {
+        // Optimistic update
+        setTasks((prev) => prev.filter((task) => task.id !== id));
+
+        // API call
+        await deleteTaskMutation({ id }).unwrap();
+
+        toast.success("Task deleted successfully");
+      } catch (error) {
+        // Revert optimistic update on error
+        setTasks((prev) => [...prev, originalTask]);
+        toast.error("Failed to delete task");
+        throw error;
+      }
+    },
+    [tasks, deleteTaskMutation],
+  );
 
   const toggleTask = useCallback(
     (id: string) => {
       updateTask(id, { completed: !tasks.find((t) => t.id === id)?.completed });
     },
-    [tasks, updateTask]
+    [tasks, updateTask],
   );
 
   const moveTask = useCallback(
     (id: string, newStatus: TaskStatus) => {
       updateTask(id, { status: newStatus });
     },
-    [updateTask]
+    [updateTask],
   );
 
   const reorderTasks = useCallback((newTasks: Task[]) => {
@@ -154,12 +100,12 @@ export const useTasks = () => {
   }, []);
 
   return {
-    tasks,
-    createTask,
     updateTask,
     deleteTask,
     toggleTask,
     moveTask,
     reorderTasks,
+    isLoading,
+    tasks,
   };
 };

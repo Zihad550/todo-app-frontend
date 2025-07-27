@@ -111,7 +111,7 @@ export function KanbanCard({
           initialData={{
             title: task.title,
             description: task.description,
-            tagIds: task.tagIds,
+            tags: task.tags,
           }}
           onSubmit={handleUpdate}
           onCancel={() => setIsEditing(false)}
@@ -209,9 +209,9 @@ export function KanbanCard({
         </p>
       )}
 
-      {task.tagIds.length > 0 && (
+      {task.tags.length > 0 && (
         <div className={`flex flex-wrap gap-1 ${isMobile ? 'mb-3' : 'mb-2'}`}>
-          {task.tagIds.map((tagId) => {
+          {task.tags.map((tagId) => {
             const tag = availableTags?.find((t) => t.id === tagId);
             return tag ? (
               <Badge

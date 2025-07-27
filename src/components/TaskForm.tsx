@@ -27,13 +27,13 @@ export const TaskForm = ({
   const [description, setDescription] = useState(
     initialData?.description || ''
   );
-  const [tagIds, setTagIds] = useState<string[]>(initialData?.tagIds || []);
+  const [tags, setTags] = useState<string[]>(initialData?.tags || []);
 
   useEffect(() => {
     if (initialData) {
       setTitle(initialData.title || '');
       setDescription(initialData.description || '');
-      setTagIds(initialData.tagIds || []);
+      setTags(initialData.tags || []);
     }
   }, [initialData]);
 
@@ -44,14 +44,14 @@ export const TaskForm = ({
     onSubmit({
       title: title.trim(),
       description: description.trim(),
-      tagIds,
+      tags,
     });
 
     // Reset form only if not editing
     if (!initialData) {
       setTitle('');
       setDescription('');
-      setTagIds([]);
+      setTags([]);
     }
   };
 
@@ -85,9 +85,9 @@ export const TaskForm = ({
 
       <div>
         <TagSelector
-          selectedTagIds={tagIds}
+          selectedTags={tags}
           availableTags={availableTags}
-          onTagIdsChange={setTagIds}
+          onTagsChange={setTags}
           placeholder="Select or create tags..."
         />
       </div>

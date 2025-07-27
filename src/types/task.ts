@@ -14,7 +14,7 @@ export interface Task {
   id: string;
   title: string;
   description: string;
-  tagIds: string[];
+  tags: string[];
   completed: boolean;
   status: TaskStatus;
   createdAt: Date;
@@ -24,13 +24,13 @@ export interface Task {
 export interface CreateTaskInput {
   title: string;
   description: string;
-  tagIds: string[];
+  tags: string[];
 }
 
 export interface UpdateTaskInput {
   title?: string;
   description?: string;
-  tagIds?: string[];
+  tags?: string[];
   completed?: boolean;
   status?: TaskStatus;
 }

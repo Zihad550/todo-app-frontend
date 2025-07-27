@@ -1,20 +1,55 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { RootState } from "../store";
+import {
+  createApi,
+  fetchBaseQuery,
+  type BaseQueryApi,
+  type BaseQueryFn,
+  type DefinitionType,
+  type FetchArgs,
+} from "@reduxjs/toolkit/query/react";
 import { TagTypes } from "../tag.types";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: import.meta.env.VITE_APP_BACKEND_API_URL,
-  credentials: "include",
-  prepareHeaders: (headers, { getState }) => {
-    const token = (getState() as RootState).auth.token;
+  // credentials: "include",
+  // prepareHeaders: (headers, { getState }) => {
+  // const token = (getState() as RootState).auth.token;
 
-    if (token) {
-      headers.set("authorization", `${token}`);
-    }
+  // if (token) {
+  //   headers.set("authorization", `${token}`);
+  // }
 
-    return headers;
-  },
+  // return headers;
+  // },
 });
+
+const testBaseQuery: BaseQueryFn<
+  FetchArgs,
+  BaseQueryApi,
+  DefinitionType
+> = async (args, api, extraOptions): Promise<any> => {
+  const results = await baseQuery(args, api, extraOptions);
+
+  if (Array.isArray(results.data?.data)) {
+    const data = results?.data?.data;
+    const formatted = data?.map((item) => ({
+      ...item,
+      createdAt: new Date(item.createdAt),
+      updatedAt: new Date(item.updatedAt),
+    }));
+    console.log("formatted", formatted);
+
+    const res = {
+      ...results,
+      data: {
+        ...results?.data,
+        data: formatted,
+      },
+    };
+    console.log("res", res);
+    return res;
+  }
+  return results;
+};
 
 // const baseQueryWithRefreshToken: BaseQueryFn<
 //   FetchArgs,
@@ -64,7 +99,7 @@ const baseQuery = fetchBaseQuery({
 export const baseApi = createApi({
   reducerPath: "baseApi",
   // baseQuery: baseQueryWithRefreshToken,
-  baseQuery: baseQuery,
+  baseQuery: testBaseQuery,
   tagTypes: Object.values(TagTypes),
   endpoints: () => ({}),
 });

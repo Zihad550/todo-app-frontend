@@ -1,56 +1,55 @@
-import { useState } from 'react';
-import { useTasks } from '@/hooks/useTasks';
-import { useTags } from '@/hooks/useTags';
-import { useTaskFilters } from '@/hooks/useTaskFilters';
-import { TaskForm } from '@/components/TaskForm';
-import { TaskList } from '@/components/TaskList';
-import { TaskFilters } from '@/components/TaskFilters';
-import { KanbanBoard } from '@/components/KanbanBoard';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { Button } from '@/components/ui/button';
+import { KanbanBoard } from "@/components/KanbanBoard";
+import { TaskFilters } from "@/components/TaskFilters";
+import { TaskForm } from "@/components/TaskForm";
+import { TaskList } from "@/components/TaskList";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTags } from "@/hooks/useTags";
+import { useTaskFilters } from "@/hooks/useTaskFilters";
+import { useTasks } from "@/hooks/useTasks";
+import { useCreateTaskMutation } from "@/redux/features/taskApi";
+import type { CreateTaskInput, Task, UpdateTaskInput } from "@/types/task";
+import { TaskStatus } from "@/types/task";
 import {
-  Plus,
+  BarChart3,
   CheckSquare,
   Filter,
   LayoutGrid,
   List,
+  Plus,
   Tag,
-  BarChart3,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import type { Task, CreateTaskInput, UpdateTaskInput } from '@/types/task';
-import { TaskStatus } from '@/types/task';
+} from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
-type ViewMode = 'list' | 'kanban';
+type ViewMode = "list" | "kanban";
 
 interface TasksPageProps {
-  tasksData: ReturnType<typeof useTasks>;
   onNavigateToTags: () => void;
   onNavigateToStatistics: () => void;
 }
 
 function TasksPage({
-  tasksData,
   onNavigateToTags,
   onNavigateToStatistics,
 }: TasksPageProps) {
   const {
     tasks,
-    createTask,
     updateTask,
     deleteTask,
     toggleTask,
     moveTask,
     reorderTasks,
-  } = tasksData;
-  const { tags } = useTags(tasks);
+    isLoading: isTasksLoading,
+  } = useTasks();
+
   const {
     searchTerm,
     setSearchTerm,
@@ -65,81 +64,92 @@ function TasksPage({
     hasActiveFilters,
     clearAllFilters,
   } = useTaskFilters(tasks);
+  const { tags } = useTags(tasks);
 
   const [showForm, setShowForm] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('kanban');
-  const [activeTab, setActiveTab] = useState<'incomplete' | 'completed'>(
-    'incomplete'
+  const [viewMode, setViewMode] = useState<ViewMode>("kanban");
+  const [activeTab, setActiveTab] = useState<"incomplete" | "completed">(
+    "incomplete",
   );
 
-  const handleCreateTask = (taskInput: CreateTaskInput) => {
-    createTask(taskInput);
+  const [createTaskMutation, { isLoading }] = useCreateTaskMutation();
+
+  const handleCreateTask = async (input: CreateTaskInput) => {
+    const newTask: Omit<Task, "id"> = {
+      title: input.title,
+      description: input.description,
+      tags: input.tags,
+      completed: false,
+      status: TaskStatus.BACKLOG,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    await createTaskMutation(newTask).unwrap();
+
     setShowForm(false);
-    toast.success('Task created successfully!');
+    toast.success("Task created successfully!");
   };
 
   const handleUpdateTask = (id: string, updates: UpdateTaskInput) => {
     updateTask(id, updates);
-    toast.success('Task updated successfully!');
+    toast.success("Task updated successfully!");
   };
 
   const handleDeleteTask = (id: string) => {
     deleteTask(id);
-    toast.success('Task deleted successfully!');
+    toast.success("Task deleted successfully!");
   };
 
   const handleToggleTask = (id: string) => {
     toggleTask(id);
     const task = tasks.find((t) => t.id === id);
     toast.success(
-      task?.completed ? 'Task marked as incomplete!' : 'Task completed!'
+      task?.completed ? "Task marked as incomplete!" : "Task completed!",
     );
   };
 
   const handleMoveTask = (taskId: string, newStatus: TaskStatus) => {
     moveTask(taskId, newStatus);
     const statusLabels: Record<TaskStatus, string> = {
-      [TaskStatus.BACKLOG]: 'Backlog',
-      [TaskStatus.SCHEDULED]: 'Scheduled',
-      [TaskStatus.PROGRESS]: 'In Progress',
-      [TaskStatus.COMPLETED]: 'Completed',
+      [TaskStatus.BACKLOG]: "Backlog",
+      [TaskStatus.SCHEDULED]: "Scheduled",
+      [TaskStatus.PROGRESS]: "In Progress",
+      [TaskStatus.COMPLETED]: "Completed",
     };
-    const statusLabel = statusLabels[newStatus] || 'Unknown Status';
+    const statusLabel = statusLabels[newStatus] || "Unknown Status";
     toast.success(`Task moved to ${statusLabel}!`);
   };
 
   const handleReorderTasks = (reorderedTasks: Task[]) => {
-    console.log(
-      'TasksPage: Reordering tasks:',
-      reorderedTasks.map((t) => t.title)
-    );
-
     // For now, disable reordering when filters are active to avoid complexity
     if (hasActiveFilters) {
-      toast.error('Please clear all filters before reordering tasks');
+      toast.error("Please clear all filters before reordering tasks");
       return;
     }
 
     reorderTasks(reorderedTasks);
-    toast.success('Tasks reordered successfully!');
+    toast.success("Tasks reordered successfully!");
   };
 
-  const completedCount = tasks.filter((task) => task.completed).length;
+  if (isLoading || isTasksLoading) return "...creating";
+
+  const completedCount = tasks?.filter((task) => task.completed).length;
   const incompleteCount = tasks.length - completedCount;
   const totalCount = tasks.length;
 
   // Filter tasks based on active tab for list view
   const getTabFilteredTasks = (baseTasks: Task[]) => {
-    if (viewMode !== 'list') return baseTasks;
+    if (viewMode !== "list") return baseTasks;
     return baseTasks.filter((task) =>
-      activeTab === 'completed' ? task.completed : !task.completed
+      activeTab === "completed" ? task.completed : !task.completed,
     );
   };
 
   const tabFilteredTasks = getTabFilteredTasks(filteredAndSortedTasks);
   const displayedCount =
-    viewMode === 'list'
+    viewMode === "list"
       ? tabFilteredTasks.length
       : filteredAndSortedTasks.length;
 
@@ -147,9 +157,9 @@ function TasksPage({
     <div className="min-h-screen bg-background">
       <div
         className={`mx-auto py-4 sm:py-6 lg:py-8 ${
-          viewMode === 'kanban'
-            ? 'px-3 sm:px-4 lg:px-6 max-w-screen-2xl'
-            : 'container px-4 max-w-7xl'
+          viewMode === "kanban"
+            ? "px-3 sm:px-4 lg:px-6 max-w-screen-2xl"
+            : "container px-4 max-w-7xl"
         }`}
       >
         {/* Header */}
@@ -162,17 +172,17 @@ function TasksPage({
               </h1>
               <p className="text-sm sm:text-base text-muted-foreground">
                 {totalCount === 0
-                  ? 'No tasks yet'
-                  : viewMode === 'list'
-                  ? `${
-                      activeTab === 'completed'
-                        ? completedCount
-                        : incompleteCount
-                    } ${activeTab} tasks`
-                  : `${completedCount} of ${totalCount} tasks completed`}
-                {viewMode === 'list' &&
+                  ? "No tasks yet"
+                  : viewMode === "list"
+                    ? `${
+                        activeTab === "completed"
+                          ? completedCount
+                          : incompleteCount
+                      } ${activeTab} tasks`
+                    : `${completedCount} of ${totalCount} tasks completed`}
+                {viewMode === "list" &&
                   displayedCount !==
-                    (activeTab === 'completed'
+                    (activeTab === "completed"
                       ? completedCount
                       : incompleteCount) && (
                     <span> • Showing {displayedCount} tasks</span>
@@ -224,8 +234,8 @@ function TasksPage({
 
               <div className="flex border rounded-lg">
                 <Button
-                  onClick={() => setViewMode('list')}
-                  variant={viewMode === 'list' ? 'default' : 'ghost'}
+                  onClick={() => setViewMode("list")}
+                  variant={viewMode === "list" ? "default" : "ghost"}
                   size="sm"
                   className="rounded-r-none text-xs sm:text-sm"
                 >
@@ -233,8 +243,8 @@ function TasksPage({
                   <span className="hidden sm:inline">List</span>
                 </Button>
                 <Button
-                  onClick={() => setViewMode('kanban')}
-                  variant={viewMode === 'kanban' ? 'default' : 'ghost'}
+                  onClick={() => setViewMode("kanban")}
+                  variant={viewMode === "kanban" ? "default" : "ghost"}
                   size="sm"
                   className="rounded-l-none text-xs sm:text-sm"
                 >
@@ -274,8 +284,8 @@ function TasksPage({
               selectedTags={selectedTags}
               onTagToggle={toggleTag}
               availableTags={availableTags}
-              variant={viewMode === 'kanban' ? 'compact' : 'default'}
-              showStatusFilter={viewMode === 'list'}
+              variant={viewMode === "kanban" ? "compact" : "default"}
+              showStatusFilter={viewMode === "list"}
               showSortOptions={true}
               showTagFilter={true}
               onClearAll={clearAllFilters}
@@ -284,11 +294,11 @@ function TasksPage({
         )}
 
         {/* Content */}
-        {viewMode === 'list' ? (
+        {viewMode === "list" ? (
           <Tabs
             value={activeTab}
             onValueChange={(value) =>
-              setActiveTab(value as 'incomplete' | 'completed')
+              setActiveTab(value as "incomplete" | "completed")
             }
           >
             <TabsList className="grid w-full grid-cols-2 mb-6">
@@ -304,18 +314,18 @@ function TasksPage({
               <TaskList
                 tasks={getTabFilteredTasks(
                   // Only allow reordering when no filters are active
-                  !hasActiveFilters ? tasks : filteredAndSortedTasks
+                  !hasActiveFilters ? tasks : filteredAndSortedTasks,
                 )}
                 onUpdate={handleUpdateTask}
                 onDelete={handleDeleteTask}
                 onToggle={handleToggleTask}
                 onReorder={
                   // Only provide reorder function when no filters are active and on incomplete tab
-                  !hasActiveFilters && activeTab === 'incomplete'
+                  !hasActiveFilters && activeTab === "incomplete"
                     ? (reorderedTasks: Task[]) => {
                         // When reordering incomplete tasks, we need to merge with completed tasks
                         const completedTasks = tasks.filter(
-                          (task) => task.completed
+                          (task) => task.completed,
                         );
                         const allTasks = [...reorderedTasks, ...completedTasks];
                         handleReorderTasks(allTasks);
@@ -330,18 +340,18 @@ function TasksPage({
               <TaskList
                 tasks={getTabFilteredTasks(
                   // Only allow reordering when no filters are active
-                  !hasActiveFilters ? tasks : filteredAndSortedTasks
+                  !hasActiveFilters ? tasks : filteredAndSortedTasks,
                 )}
                 onUpdate={handleUpdateTask}
                 onDelete={handleDeleteTask}
                 onToggle={handleToggleTask}
                 onReorder={
                   // Only provide reorder function when no filters are active and on completed tab
-                  !hasActiveFilters && activeTab === 'completed'
+                  !hasActiveFilters && activeTab === "completed"
                     ? (reorderedTasks: Task[]) => {
                         // When reordering completed tasks, we need to merge with incomplete tasks
                         const incompleteTasks = tasks.filter(
-                          (task) => !task.completed
+                          (task) => !task.completed,
                         );
                         const allTasks = [
                           ...incompleteTasks,

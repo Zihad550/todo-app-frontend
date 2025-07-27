@@ -34,7 +34,7 @@ export const TaskItem = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
   const [editDescription, setEditDescription] = useState(task.description);
-  const [editTagIds, setEditTagIds] = useState<string[]>(task.tagIds);
+  const [editTags, setEditTags] = useState<string[]>(task.tags);
 
   const {
     attributes,
@@ -57,7 +57,7 @@ export const TaskItem = ({
     onUpdate(task.id, {
       title: editTitle.trim(),
       description: editDescription.trim(),
-      tagIds: editTagIds,
+      tags: editTags,
     });
     setIsEditing(false);
   };
@@ -65,7 +65,7 @@ export const TaskItem = ({
   const handleCancel = () => {
     setEditTitle(task.title);
     setEditDescription(task.description);
-    setEditTagIds(task.tagIds);
+    setEditTags(task.tags);
     setIsEditing(false);
   };
 
@@ -120,9 +120,9 @@ export const TaskItem = ({
 
         <div>
           <TagSelector
-            selectedTagIds={editTagIds}
+            selectedTags={editTags}
             availableTags={availableTags}
-            onTagIdsChange={setEditTagIds}
+            onTagsChange={setEditTags}
             placeholder="Select or create tags..."
           />
         </div>
@@ -210,9 +210,9 @@ export const TaskItem = ({
             </p>
           )}
 
-          {task.tagIds.length > 0 && (
+          {task.tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {task.tagIds.map((tagId) => {
+              {task.tags.map((tagId) => {
                 const tag = availableTags?.find((t) => t.id === tagId);
                 return tag ? (
                   <Badge key={tag.id} variant="outline" className="text-xs">

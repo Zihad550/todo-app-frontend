@@ -13,9 +13,9 @@ const taskApi = baseApi.injectEndpoints({
     }),
     updateTask: build.mutation({
       query: (data) => ({
-        url: "/tasks",
+        url: `/tasks/${data.id}`,
         method: "PATCH",
-        body: data,
+        body: data.data,
       }),
       invalidatesTags: [TagTypes.Task],
     }),

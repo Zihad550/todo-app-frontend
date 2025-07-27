@@ -20,31 +20,31 @@ import { cn } from '@/lib/utils';
 import type { TagWithMetadata } from '@/hooks/useTags';
 
 interface TagSelectorProps {
-  selectedTagIds: string[];
+  selectedTags: string[];
   availableTags: TagWithMetadata[];
-  onTagIdsChange: (tagIds: string[]) => void;
+  onTagsChange: (tags: string[]) => void;
   placeholder?: string;
 }
 
 export const TagSelector = ({
-  selectedTagIds,
+  selectedTags,
   availableTags,
-  onTagIdsChange,
+  onTagsChange,
   placeholder = 'Select or create tags...',
 }: TagSelectorProps) => {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
 
-  const selectedTags = availableTags.filter((tag) =>
-    selectedTagIds.includes(tag.id)
+  const selectedTagObjects = availableTags.filter((tag) =>
+    selectedTags.includes(tag.id)
   );
   const unselectedTags = availableTags.filter(
-    (tag) => !selectedTagIds.includes(tag.id)
+    (tag) => !selectedTags.includes(tag.id)
   );
 
   const addTagById = (tagId: string) => {
-    if (!selectedTagIds.includes(tagId)) {
-      onTagIdsChange([...selectedTagIds, tagId]);
+    if (!selectedTags.includes(tagId)) {
+      onTagsChange([...selectedTags, tagId]);
     }
   };
 
@@ -64,11 +64,11 @@ export const TagSelector = ({
     // Create new tag (this would need to be handled by parent component)
     // For now, we'll create a temporary ID - this should be handled by the parent
     const newTagId = crypto.randomUUID();
-    onTagIdsChange([...selectedTagIds, newTagId]);
+    onTagsChange([...selectedTags, newTagId]);
   };
 
   const removeTagById = (tagId: string) => {
-    onTagIdsChange(selectedTagIds.filter((id) => id !== tagId));
+    onTagsChange(selectedTags.filter((id) => id !== tagId));
   };
 
   const handleSelectTag = (tag: TagWithMetadata) => {
@@ -100,9 +100,9 @@ export const TagSelector = ({
             aria-expanded={open}
             className="w-full justify-between"
           >
-            {selectedTagIds.length > 0
-              ? `${selectedTagIds.length} tag${
-                  selectedTagIds.length > 1 ? 's' : ''
+            {selectedTags.length > 0
+              ? `${selectedTags.length} tag${
+                  selectedTags.length > 1 ? 's' : ''
                 } selected`
               : placeholder}
             <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -128,7 +128,7 @@ export const TagSelector = ({
                       <Check
                         className={cn(
                           'mr-2 h-4 w-4',
-                          selectedTagIds.includes(tag.id)
+                          selectedTags.includes(tag.id)
                             ? 'opacity-100'
                             : 'opacity-0'
                         )}
@@ -172,9 +172,9 @@ export const TagSelector = ({
       </Popover>
 
       {/* Selected Tags Display */}
-      {selectedTags.length > 0 && (
+      {selectedTagObjects.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {selectedTags.map((tag) => (
+          {selectedTagObjects.map((tag) => (
             <Badge
               key={tag.id}
               variant="secondary"

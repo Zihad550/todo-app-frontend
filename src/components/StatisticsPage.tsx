@@ -1,26 +1,24 @@
-import { useMemo } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { useTags } from "@/hooks/useTags";
+import { useTasks } from "@/hooks/useTasks";
+import { TaskStatus } from "@/types/task";
 import {
   ArrowLeft,
+  BarChart3,
+  Calendar,
   CheckCircle,
   Clock,
-  Calendar,
-  TrendingUp,
   Tag,
-  BarChart3,
   Target,
-} from 'lucide-react';
-import type { Task } from '@/types/task';
-import type { TagWithMetadata } from '@/hooks/useTags';
-import { TaskStatus } from '@/types/task';
+  TrendingUp,
+} from "lucide-react";
+import { useMemo } from "react";
 
 interface StatisticsPageProps {
-  tasks: Task[];
-  tags: TagWithMetadata[];
   onBack: () => void;
 }
 
@@ -45,7 +43,9 @@ interface TimeStats {
   older: number;
 }
 
-export function StatisticsPage({ tasks, tags, onBack }: StatisticsPageProps) {
+export function StatisticsPage({ onBack }: StatisticsPageProps) {
+  const { tasks } = useTasks();
+  const { tags } = useTags(tasks);
   const stats = useMemo(() => {
     const totalTasks = tasks.length;
     const completedTasks = tasks.filter((task) => task.completed).length;
@@ -58,13 +58,13 @@ export function StatisticsPage({ tasks, tags, onBack }: StatisticsPageProps) {
         acc[task.status]++;
         return acc;
       },
-      { backlog: 0, scheduled: 0, progress: 0, completed: 0 }
+      { backlog: 0, scheduled: 0, progress: 0, completed: 0 },
     );
 
     // Tag statistics
     const tagMap = new Map<string, { total: number; completed: number }>();
     tasks.forEach((task) => {
-      task.tagIds.forEach((tagId) => {
+      task.tags.forEach((tagId) => {
         const tag = tags.find((t) => t.id === tagId);
         if (tag) {
           const current = tagMap.get(tag.name) || { total: 0, completed: 0 };
@@ -106,17 +106,17 @@ export function StatisticsPage({ tasks, tags, onBack }: StatisticsPageProps) {
         }
         return acc;
       },
-      { today: 0, thisWeek: 0, thisMonth: 0, older: 0 }
+      { today: 0, thisWeek: 0, thisMonth: 0, older: 0 },
     );
 
     // Recent activity (tasks updated in last 7 days)
     const recentActivity = tasks.filter(
-      (task) => new Date(task.updatedAt) >= weekAgo
+      (task) => new Date(task.updatedAt) >= weekAgo,
     ).length;
 
     // Average completion time (for completed tasks)
     const completedTasksWithTime = tasks.filter(
-      (task) => task.completed && task.updatedAt !== task.createdAt
+      (task) => task.completed && task.updatedAt !== task.createdAt,
     );
     const avgCompletionTime =
       completedTasksWithTime.length > 0
@@ -148,30 +148,30 @@ export function StatisticsPage({ tasks, tags, onBack }: StatisticsPageProps) {
   const getStatusColor = (status: TaskStatus): string => {
     switch (status) {
       case TaskStatus.BACKLOG:
-        return 'bg-gray-500';
+        return "bg-gray-500";
       case TaskStatus.SCHEDULED:
-        return 'bg-blue-500';
+        return "bg-blue-500";
       case TaskStatus.PROGRESS:
-        return 'bg-yellow-500';
+        return "bg-yellow-500";
       case TaskStatus.COMPLETED:
-        return 'bg-green-500';
+        return "bg-green-500";
       default:
-        return 'bg-gray-500';
+        return "bg-gray-500";
     }
   };
 
   const getStatusLabel = (status: TaskStatus): string => {
     switch (status) {
       case TaskStatus.BACKLOG:
-        return 'Backlog';
+        return "Backlog";
       case TaskStatus.SCHEDULED:
-        return 'Scheduled';
+        return "Scheduled";
       case TaskStatus.PROGRESS:
-        return 'In Progress';
+        return "In Progress";
       case TaskStatus.COMPLETED:
-        return 'Completed';
+        return "Completed";
       default:
-        return 'Unknown';
+        return "Unknown";
     }
   };
 
@@ -274,7 +274,7 @@ export function StatisticsPage({ tasks, tags, onBack }: StatisticsPageProps) {
                   <div className="text-2xl font-bold">
                     {stats.avgCompletionDays > 0
                       ? `${stats.avgCompletionDays}d`
-                      : 'N/A'}
+                      : "N/A"}
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Average days to complete
@@ -327,7 +327,7 @@ export function StatisticsPage({ tasks, tags, onBack }: StatisticsPageProps) {
                           <div className="flex items-center gap-2">
                             <div
                               className={`w-3 h-3 rounded-full ${getStatusColor(
-                                status as TaskStatus
+                                status as TaskStatus,
                               )}`}
                             />
                             <span className="text-sm font-medium">
@@ -345,7 +345,7 @@ export function StatisticsPage({ tasks, tags, onBack }: StatisticsPageProps) {
                             </span>
                           </div>
                         </div>
-                      )
+                      ),
                     )}
                   </div>
                 </CardContent>

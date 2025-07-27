@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { TaskFilters } from '@/components/TaskFilters';
 import { useFilters } from '@/hooks/useFilters';
+import { useTags } from '@/hooks/useTags';
 import type { Task } from '@/types/task';
 
 interface FilterExampleProps {
@@ -16,6 +17,7 @@ export function FilterExample({
   tasks,
   onFilteredTasksChange,
 }: FilterExampleProps) {
+  const { tags } = useTags(tasks);
   const {
     searchTerm,
     setSearchTerm,
@@ -29,7 +31,7 @@ export function FilterExample({
     filteredAndSortedTasks,
     hasActiveFilters,
     clearAllFilters,
-  } = useFilters(tasks);
+  } = useFilters(tasks, tags);
 
   // Notify parent component when filtered tasks change
   useEffect(() => {
