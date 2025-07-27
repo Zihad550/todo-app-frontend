@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Plus, CheckSquare, Filter, LayoutGrid, List } from 'lucide-react';
+import { Plus, CheckSquare, Filter, LayoutGrid, List, Tag } from 'lucide-react';
 import { toast } from 'sonner';
 import type {
   Task,
@@ -24,7 +24,11 @@ import type {
 
 type ViewMode = 'list' | 'kanban';
 
-function TasksPage() {
+interface TasksPageProps {
+  onNavigateToTags: () => void;
+}
+
+function TasksPage({ onNavigateToTags }: TasksPageProps) {
   const {
     tasks,
     createTask,
@@ -143,6 +147,15 @@ function TasksPage() {
           >
             <Plus className="h-4 w-4 mr-2" />
             Add New Task
+          </Button>
+
+          <Button
+            onClick={onNavigateToTags}
+            variant="outline"
+            className="flex-1 sm:flex-none"
+          >
+            <Tag className="h-4 w-4 mr-2" />
+            Manage Tags
           </Button>
 
           {tasks.length > 0 && (
