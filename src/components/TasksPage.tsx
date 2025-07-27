@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, CheckSquare, Filter, LayoutGrid, List, Tag } from 'lucide-react';
 import { toast } from 'sonner';
 import type {
@@ -54,6 +55,9 @@ function TasksPage({ onNavigateToTags }: TasksPageProps) {
   const [showForm, setShowForm] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [activeTab, setActiveTab] = useState<'incomplete' | 'completed'>(
+    'incomplete'
+  );
 
   const handleCreateTask = (taskInput: CreateTaskInput) => {
     createTask(taskInput);
@@ -114,8 +118,22 @@ function TasksPage({ onNavigateToTags }: TasksPageProps) {
   };
 
   const completedCount = tasks.filter((task) => task.completed).length;
+  const incompleteCount = tasks.length - completedCount;
   const totalCount = tasks.length;
-  const displayedCount = filteredAndSortedTasks.length;
+
+  // Filter tasks based on active tab for list view
+  const getTabFilteredTasks = (baseTasks: Task[]) => {
+    if (viewMode !== 'list') return baseTasks;
+    return baseTasks.filter((task) =>
+      activeTab === 'completed' ? task.completed : !task.completed
+    );
+  };
+
+  const tabFilteredTasks = getTabFilteredTasks(filteredAndSortedTasks);
+  const displayedCount =
+    viewMode === 'list'
+      ? tabFilteredTasks.length
+      : filteredAndSortedTasks.length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -129,10 +147,20 @@ function TasksPage({ onNavigateToTags }: TasksPageProps) {
               <p className="text-muted-foreground">
                 {totalCount === 0
                   ? 'No tasks yet'
+                  : viewMode === 'list'
+                  ? `${
+                      activeTab === 'completed'
+                        ? completedCount
+                        : incompleteCount
+                    } ${activeTab} tasks`
                   : `${completedCount} of ${totalCount} tasks completed`}
-                {displayedCount !== totalCount && viewMode === 'list' && (
-                  <span> • Showing {displayedCount} tasks</span>
-                )}
+                {viewMode === 'list' &&
+                  displayedCount !==
+                    (activeTab === 'completed'
+                      ? completedCount
+                      : incompleteCount) && (
+                    <span> • Showing {displayedCount} tasks</span>
+                  )}
               </p>
             </div>
           </div>
@@ -227,30 +255,94 @@ function TasksPage({ onNavigateToTags }: TasksPageProps) {
 
         {/* Content */}
         {viewMode === 'list' ? (
-          <TaskList
-            tasks={
-              // Only allow reordering when no filters are active
-              searchTerm.trim() === '' &&
-              filter === 'all' &&
-              selectedTags.length === 0 &&
-              sort === 'newest'
-                ? tasks
-                : filteredAndSortedTasks
+          <Tabs
+            value={activeTab}
+            onValueChange={(value) =>
+              setActiveTab(value as 'incomplete' | 'completed')
             }
-            onUpdate={handleUpdateTask}
-            onDelete={handleDeleteTask}
-            onToggle={handleToggleTask}
-            onReorder={
-              // Only provide reorder function when no filters are active
-              searchTerm.trim() === '' &&
-              filter === 'all' &&
-              selectedTags.length === 0 &&
-              sort === 'newest'
-                ? handleReorderTasks
-                : undefined
-            }
-            availableTags={availableTags}
-          />
+          >
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="incomplete">
+                Incomplete ({incompleteCount})
+              </TabsTrigger>
+              <TabsTrigger value="completed">
+                Completed ({completedCount})
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="incomplete">
+              <TaskList
+                tasks={getTabFilteredTasks(
+                  // Only allow reordering when no filters are active
+                  searchTerm.trim() === '' &&
+                    filter === 'all' &&
+                    selectedTags.length === 0 &&
+                    sort === 'newest'
+                    ? tasks
+                    : filteredAndSortedTasks
+                )}
+                onUpdate={handleUpdateTask}
+                onDelete={handleDeleteTask}
+                onToggle={handleToggleTask}
+                onReorder={
+                  // Only provide reorder function when no filters are active and on incomplete tab
+                  searchTerm.trim() === '' &&
+                  filter === 'all' &&
+                  selectedTags.length === 0 &&
+                  sort === 'newest' &&
+                  activeTab === 'incomplete'
+                    ? (reorderedTasks: Task[]) => {
+                        // When reordering incomplete tasks, we need to merge with completed tasks
+                        const completedTasks = tasks.filter(
+                          (task) => task.completed
+                        );
+                        const allTasks = [...reorderedTasks, ...completedTasks];
+                        handleReorderTasks(allTasks);
+                      }
+                    : undefined
+                }
+                availableTags={availableTags}
+              />
+            </TabsContent>
+
+            <TabsContent value="completed">
+              <TaskList
+                tasks={getTabFilteredTasks(
+                  // Only allow reordering when no filters are active
+                  searchTerm.trim() === '' &&
+                    filter === 'all' &&
+                    selectedTags.length === 0 &&
+                    sort === 'newest'
+                    ? tasks
+                    : filteredAndSortedTasks
+                )}
+                onUpdate={handleUpdateTask}
+                onDelete={handleDeleteTask}
+                onToggle={handleToggleTask}
+                onReorder={
+                  // Only provide reorder function when no filters are active and on completed tab
+                  searchTerm.trim() === '' &&
+                  filter === 'all' &&
+                  selectedTags.length === 0 &&
+                  sort === 'newest' &&
+                  activeTab === 'completed'
+                    ? (reorderedTasks: Task[]) => {
+                        // When reordering completed tasks, we need to merge with incomplete tasks
+                        const incompleteTasks = tasks.filter(
+                          (task) => !task.completed
+                        );
+                        const allTasks = [
+                          ...incompleteTasks,
+                          ...reorderedTasks,
+                        ];
+                        handleReorderTasks(allTasks);
+                      }
+                    : undefined
+                }
+                availableTags={availableTags}
+              />
+            </TabsContent>
+          </Tabs>
         ) : (
           <KanbanBoard
             tasks={tasks}
