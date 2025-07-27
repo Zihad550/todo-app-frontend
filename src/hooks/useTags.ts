@@ -47,7 +47,7 @@ export const useTags = (tasks: Task[]) => {
       createdAt: new Date(),
       updatedAt: new Date(),
     }));
-  }, []);
+  }, [tasks]);
 
   const [tags, setTags] = useState<Tag[]>(initialTags);
 

@@ -50,6 +50,8 @@ function TasksPage({ onNavigateToTags }: TasksPageProps) {
     toggleTag,
     availableTags,
     filteredAndSortedTasks,
+    hasActiveFilters,
+    clearAllFilters,
   } = useTaskFilters(tasks);
 
   const [showForm, setShowForm] = useState(false);
@@ -102,12 +104,6 @@ function TasksPage({ onNavigateToTags }: TasksPageProps) {
     );
 
     // For now, disable reordering when filters are active to avoid complexity
-    const hasActiveFilters =
-      searchTerm.trim() !== '' ||
-      filter !== 'all' ||
-      selectedTags.length > 0 ||
-      sort !== 'newest';
-
     if (hasActiveFilters) {
       toast.error('Please clear all filters before reordering tasks');
       return;
@@ -245,7 +241,7 @@ function TasksPage({ onNavigateToTags }: TasksPageProps) {
         </Dialog>
 
         {/* Filters */}
-        {showFilters && tasks.length > 0 && viewMode === 'list' && (
+        {showFilters && tasks.length > 0 && (
           <div className="mb-6">
             <TaskFilters
               searchTerm={searchTerm}
@@ -257,6 +253,11 @@ function TasksPage({ onNavigateToTags }: TasksPageProps) {
               selectedTags={selectedTags}
               onTagToggle={toggleTag}
               availableTags={availableTags}
+              variant={viewMode === 'kanban' ? 'compact' : 'default'}
+              showStatusFilter={viewMode === 'list'}
+              showSortOptions={true}
+              showTagFilter={true}
+              onClearAll={clearAllFilters}
             />
           </div>
         )}
@@ -282,23 +283,14 @@ function TasksPage({ onNavigateToTags }: TasksPageProps) {
               <TaskList
                 tasks={getTabFilteredTasks(
                   // Only allow reordering when no filters are active
-                  searchTerm.trim() === '' &&
-                    filter === 'all' &&
-                    selectedTags.length === 0 &&
-                    sort === 'newest'
-                    ? tasks
-                    : filteredAndSortedTasks
+                  !hasActiveFilters ? tasks : filteredAndSortedTasks
                 )}
                 onUpdate={handleUpdateTask}
                 onDelete={handleDeleteTask}
                 onToggle={handleToggleTask}
                 onReorder={
                   // Only provide reorder function when no filters are active and on incomplete tab
-                  searchTerm.trim() === '' &&
-                  filter === 'all' &&
-                  selectedTags.length === 0 &&
-                  sort === 'newest' &&
-                  activeTab === 'incomplete'
+                  !hasActiveFilters && activeTab === 'incomplete'
                     ? (reorderedTasks: Task[]) => {
                         // When reordering incomplete tasks, we need to merge with completed tasks
                         const completedTasks = tasks.filter(
@@ -317,23 +309,14 @@ function TasksPage({ onNavigateToTags }: TasksPageProps) {
               <TaskList
                 tasks={getTabFilteredTasks(
                   // Only allow reordering when no filters are active
-                  searchTerm.trim() === '' &&
-                    filter === 'all' &&
-                    selectedTags.length === 0 &&
-                    sort === 'newest'
-                    ? tasks
-                    : filteredAndSortedTasks
+                  !hasActiveFilters ? tasks : filteredAndSortedTasks
                 )}
                 onUpdate={handleUpdateTask}
                 onDelete={handleDeleteTask}
                 onToggle={handleToggleTask}
                 onReorder={
                   // Only provide reorder function when no filters are active and on completed tab
-                  searchTerm.trim() === '' &&
-                  filter === 'all' &&
-                  selectedTags.length === 0 &&
-                  sort === 'newest' &&
-                  activeTab === 'completed'
+                  !hasActiveFilters && activeTab === 'completed'
                     ? (reorderedTasks: Task[]) => {
                         // When reordering completed tasks, we need to merge with incomplete tasks
                         const incompleteTasks = tasks.filter(
@@ -353,7 +336,7 @@ function TasksPage({ onNavigateToTags }: TasksPageProps) {
           </Tabs>
         ) : (
           <KanbanBoard
-            tasks={tasks}
+            tasks={hasActiveFilters ? filteredAndSortedTasks : tasks}
             onMoveTask={handleMoveTask}
             onReorderTasks={reorderTasks}
             onUpdateTask={handleUpdateTask}
