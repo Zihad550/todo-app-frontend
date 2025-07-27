@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import type { Task, UpdateTaskInput } from '@/types/task';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TagSelector } from '@/components/TagSelector';
-import { Edit2, Trash2, Save, X } from 'lucide-react';
+import { Edit2, Trash2, Save, X, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TaskItemProps {
@@ -15,6 +17,8 @@ interface TaskItemProps {
   onDelete: (id: string) => void;
   onToggle: (id: string) => void;
   availableTags?: string[];
+  isDraggable?: boolean;
+  isDragging?: boolean;
 }
 
 export const TaskItem = ({
@@ -23,11 +27,30 @@ export const TaskItem = ({
   onDelete,
   onToggle,
   availableTags = [],
+  isDraggable = false,
+  isDragging = false,
 }: TaskItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
   const [editDescription, setEditDescription] = useState(task.description);
   const [editTags, setEditTags] = useState<string[]>(task.tags);
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging: isSortableDragging,
+  } = useSortable({
+    id: task.id,
+    disabled: !isDraggable || isEditing,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
 
   const handleSave = () => {
     onUpdate(task.id, {
@@ -72,7 +95,11 @@ export const TaskItem = ({
 
   if (isEditing) {
     return (
-      <div className="p-4 border rounded-lg bg-card space-y-4">
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="p-4 border rounded-lg bg-card space-y-4"
+      >
         <div>
           <Input
             value={editTitle}
@@ -115,12 +142,25 @@ export const TaskItem = ({
 
   return (
     <div
+      ref={setNodeRef}
+      style={style}
       className={cn(
         'p-4 border rounded-lg bg-card transition-all hover:shadow-md',
-        task.completed && 'opacity-60'
+        task.completed && 'opacity-60',
+        (isSortableDragging || isDragging) && 'opacity-50 shadow-lg rotate-2'
       )}
     >
       <div className="flex items-start gap-3">
+        {isDraggable && (
+          <div
+            {...attributes}
+            {...listeners}
+            className="flex items-center justify-center w-6 h-6 mt-1 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing"
+          >
+            <GripVertical className="h-4 w-4" />
+          </div>
+        )}
+
         <Checkbox
           checked={task.completed}
           onCheckedChange={() => onToggle(task.id)}

@@ -1,3 +1,18 @@
+import { useState, useEffect } from 'react';
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import type { Task, UpdateTaskInput } from '@/types/task';
 import { TaskItem } from './TaskItem';
 
@@ -6,6 +21,7 @@ interface TaskListProps {
   onUpdate: (id: string, updates: UpdateTaskInput) => void;
   onDelete: (id: string) => void;
   onToggle: (id: string) => void;
+  onReorder?: (tasks: Task[]) => void;
   availableTags?: string[];
 }
 
@@ -14,9 +30,71 @@ export const TaskList = ({
   onUpdate,
   onDelete,
   onToggle,
+  onReorder,
   availableTags = [],
 }: TaskListProps) => {
-  if (tasks.length === 0) {
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [localTasks, setLocalTasks] = useState<Task[]>(tasks);
+
+  // Sync local tasks with props
+  useEffect(() => {
+    setLocalTasks(tasks);
+  }, [tasks]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const task = localTasks.find((t) => t.id === event.active.id);
+    setActiveTask(task || null);
+    console.log('Drag started:', task?.title);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveTask(null);
+
+    if (!over) {
+      console.log('No drop target');
+      return;
+    }
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    console.log('Drag end:', { activeId, overId });
+
+    if (activeId !== overId) {
+      const activeIndex = localTasks.findIndex((task) => task.id === activeId);
+      const overIndex = localTasks.findIndex((task) => task.id === overId);
+
+      console.log('Indices:', { activeIndex, overIndex });
+
+      if (activeIndex !== -1 && overIndex !== -1) {
+        const reorderedTasks = arrayMove(localTasks, activeIndex, overIndex);
+        console.log(
+          'New order:',
+          reorderedTasks.map((t) => t.title)
+        );
+
+        // Update local state immediately for instant visual feedback
+        setLocalTasks(reorderedTasks);
+
+        // Call parent reorder function
+        if (onReorder) {
+          console.log('Calling onReorder');
+          onReorder(reorderedTasks);
+        }
+      }
+    }
+  };
+
+  if (localTasks.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
         <p className="text-lg">No tasks yet</p>
@@ -25,18 +103,62 @@ export const TaskList = ({
     );
   }
 
+  // If no reorder function is provided, render without drag and drop
+  if (!onReorder) {
+    return (
+      <div className="space-y-4">
+        {localTasks.map((task) => (
+          <TaskItem
+            key={task.id}
+            task={task}
+            onUpdate={onUpdate}
+            onDelete={onDelete}
+            onToggle={onToggle}
+            availableTags={availableTags}
+          />
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4">
-      {tasks.map((task) => (
-        <TaskItem
-          key={task.id}
-          task={task}
-          onUpdate={onUpdate}
-          onDelete={onDelete}
-          onToggle={onToggle}
-          availableTags={availableTags}
-        />
-      ))}
-    </div>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext
+        items={localTasks.map((task) => task.id)}
+        strategy={verticalListSortingStrategy}
+      >
+        <div className="space-y-4">
+          {localTasks.map((task) => (
+            <TaskItem
+              key={task.id}
+              task={task}
+              onUpdate={onUpdate}
+              onDelete={onDelete}
+              onToggle={onToggle}
+              availableTags={availableTags}
+              isDraggable={true}
+            />
+          ))}
+        </div>
+      </SortableContext>
+
+      <DragOverlay>
+        {activeTask ? (
+          <TaskItem
+            task={activeTask}
+            onUpdate={() => {}}
+            onDelete={() => {}}
+            onToggle={() => {}}
+            availableTags={availableTags}
+            isDragging={true}
+          />
+        ) : null}
+      </DragOverlay>
+    </DndContext>
   );
 };

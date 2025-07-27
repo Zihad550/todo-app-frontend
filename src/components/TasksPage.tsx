@@ -16,6 +16,7 @@ import {
 import { Plus, CheckSquare, Filter, LayoutGrid, List } from 'lucide-react';
 import { toast } from 'sonner';
 import type {
+  Task,
   CreateTaskInput,
   UpdateTaskInput,
   TaskStatus,
@@ -84,6 +85,28 @@ function TasksPage() {
     };
     const statusLabel = statusLabels[newStatus] || 'Unknown Status';
     toast.success(`Task moved to ${statusLabel}!`);
+  };
+
+  const handleReorderTasks = (reorderedTasks: Task[]) => {
+    console.log(
+      'TasksPage: Reordering tasks:',
+      reorderedTasks.map((t) => t.title)
+    );
+
+    // For now, disable reordering when filters are active to avoid complexity
+    const hasActiveFilters =
+      searchTerm.trim() !== '' ||
+      filter !== 'all' ||
+      selectedTags.length > 0 ||
+      sort !== 'newest';
+
+    if (hasActiveFilters) {
+      toast.error('Please clear all filters before reordering tasks');
+      return;
+    }
+
+    reorderTasks(reorderedTasks);
+    toast.success('Tasks reordered successfully!');
   };
 
   const completedCount = tasks.filter((task) => task.completed).length;
@@ -192,10 +215,27 @@ function TasksPage() {
         {/* Content */}
         {viewMode === 'list' ? (
           <TaskList
-            tasks={filteredAndSortedTasks}
+            tasks={
+              // Only allow reordering when no filters are active
+              searchTerm.trim() === '' &&
+              filter === 'all' &&
+              selectedTags.length === 0 &&
+              sort === 'newest'
+                ? tasks
+                : filteredAndSortedTasks
+            }
             onUpdate={handleUpdateTask}
             onDelete={handleDeleteTask}
             onToggle={handleToggleTask}
+            onReorder={
+              // Only provide reorder function when no filters are active
+              searchTerm.trim() === '' &&
+              filter === 'all' &&
+              selectedTags.length === 0 &&
+              sort === 'newest'
+                ? handleReorderTasks
+                : undefined
+            }
             availableTags={availableTags}
           />
         ) : (
