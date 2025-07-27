@@ -96,67 +96,77 @@ export function KanbanCard({
       style={style}
       {...attributes}
       {...listeners}
-      className="bg-background border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing group"
+      className="bg-background border rounded-md p-2 shadow-sm hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing group"
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
-      <div className="flex items-start justify-between mb-2">
-        <h4 className="font-medium text-sm leading-tight pr-2">{task.title}</h4>
+      <div className="flex items-start justify-between mb-1">
+        <h4 className="font-medium text-xs leading-tight pr-1">{task.title}</h4>
         {showActions && (
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
             <Button
               size="sm"
               variant="ghost"
-              className="h-6 w-6 p-0"
+              className="h-5 w-5 p-0"
               onClick={(e) => {
                 e.stopPropagation();
                 handleEdit();
               }}
             >
-              <Edit className="h-3 w-3" />
+              <Edit className="h-2.5 w-2.5" />
             </Button>
             <Button
               size="sm"
               variant="ghost"
-              className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+              className="h-5 w-5 p-0 text-destructive hover:text-destructive"
               onClick={(e) => {
                 e.stopPropagation();
                 handleDelete();
               }}
             >
-              <Trash2 className="h-3 w-3" />
+              <Trash2 className="h-2.5 w-2.5" />
             </Button>
           </div>
         )}
       </div>
 
       {task.description && (
-        <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+        <p className="text-xs text-muted-foreground mb-1.5 line-clamp-2">
           {task.description}
         </p>
       )}
 
       {task.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-2">
+        <div className="flex flex-wrap gap-0.5 mb-1.5">
           {task.tags.map((tag) => (
-            <Badge key={tag} variant="secondary" className="text-xs px-2 py-0">
+            <Badge
+              key={tag}
+              variant="secondary"
+              className="text-xs px-1.5 py-0 h-4"
+            >
               {tag}
             </Badge>
           ))}
         </div>
       )}
 
-      <div className="text-xs text-muted-foreground space-y-1 border-t pt-2">
+      <div className="text-xs text-muted-foreground border-t pt-1">
         <div className="flex justify-between items-center">
-          <span>Created:</span>
-          <span title={new Date(task.createdAt).toLocaleString()}>
+          <span className="text-xs">Created:</span>
+          <span
+            className="text-xs"
+            title={new Date(task.createdAt).toLocaleString()}
+          >
             {formatRelativeTime(task.createdAt)}
           </span>
         </div>
         {task.updatedAt.getTime() !== task.createdAt.getTime() && (
-          <div className="flex justify-between items-center">
-            <span>Updated:</span>
-            <span title={new Date(task.updatedAt).toLocaleString()}>
+          <div className="flex justify-between items-center mt-0.5">
+            <span className="text-xs">Updated:</span>
+            <span
+              className="text-xs"
+              title={new Date(task.updatedAt).toLocaleString()}
+            >
               {formatRelativeTime(task.updatedAt)}
             </span>
           </div>
