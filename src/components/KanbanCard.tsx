@@ -23,6 +23,20 @@ export function KanbanCard({
   const [isEditing, setIsEditing] = useState(false);
   const [showActions, setShowActions] = useState(false);
 
+  const formatRelativeTime = (date: Date) => {
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInMinutes < 1) return 'just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    if (diffInDays < 7) return `${diffInDays}d ago`;
+    return date.toLocaleDateString();
+  };
+
   const {
     attributes,
     listeners,
@@ -129,8 +143,21 @@ export function KanbanCard({
         </div>
       )}
 
-      <div className="text-xs text-muted-foreground">
-        {new Date(task.updatedAt).toLocaleDateString()}
+      <div className="text-xs text-muted-foreground space-y-1 border-t pt-2">
+        <div className="flex justify-between items-center">
+          <span>Created:</span>
+          <span title={new Date(task.createdAt).toLocaleString()}>
+            {formatRelativeTime(task.createdAt)}
+          </span>
+        </div>
+        {task.updatedAt.getTime() !== task.createdAt.getTime() && (
+          <div className="flex justify-between items-center">
+            <span>Updated:</span>
+            <span title={new Date(task.updatedAt).toLocaleString()}>
+              {formatRelativeTime(task.updatedAt)}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

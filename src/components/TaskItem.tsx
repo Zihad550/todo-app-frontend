@@ -67,9 +67,25 @@ export const TaskItem = ({
     return new Intl.DateTimeFormat('en-US', {
       month: 'short',
       day: 'numeric',
+      year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      hour12: true,
     }).format(date);
+  };
+
+  const formatRelativeTime = (date: Date) => {
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInMinutes < 1) return 'just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    if (diffInDays < 7) return `${diffInDays}d ago`;
+    return formatDate(date);
   };
 
   if (isEditing) {
@@ -212,10 +228,30 @@ export const TaskItem = ({
             </div>
           )}
 
-          <div className="flex justify-between items-center text-xs text-muted-foreground">
-            <span>Created: {formatDate(task.createdAt)}</span>
+          <div className="flex flex-col gap-1 text-xs text-muted-foreground border-t pt-2 mt-3">
+            <div className="flex justify-between items-center">
+              <span className="flex items-center gap-1">
+                <span className="font-medium">Created:</span>
+                <span title={formatDate(task.createdAt)}>
+                  {formatRelativeTime(task.createdAt)}
+                </span>
+              </span>
+              <span className="text-xs opacity-75">
+                {formatDate(task.createdAt).split(',')[1]?.trim()}
+              </span>
+            </div>
             {task.updatedAt.getTime() !== task.createdAt.getTime() && (
-              <span>Updated: {formatDate(task.updatedAt)}</span>
+              <div className="flex justify-between items-center">
+                <span className="flex items-center gap-1">
+                  <span className="font-medium">Updated:</span>
+                  <span title={formatDate(task.updatedAt)}>
+                    {formatRelativeTime(task.updatedAt)}
+                  </span>
+                </span>
+                <span className="text-xs opacity-75">
+                  {formatDate(task.updatedAt).split(',')[1]?.trim()}
+                </span>
+              </div>
             )}
           </div>
         </div>
