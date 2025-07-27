@@ -14,7 +14,8 @@ import {
   BarChart3,
   Target,
 } from 'lucide-react';
-import type { Task, TaskStatus } from '@/types/task';
+import type { Task } from '@/types/task';
+import { TaskStatus } from '@/types/task';
 
 interface StatisticsPageProps {
   tasks: Task[];
@@ -141,13 +142,13 @@ export function StatisticsPage({ tasks, onBack }: StatisticsPageProps) {
 
   const getStatusColor = (status: TaskStatus): string => {
     switch (status) {
-      case 'backlog':
+      case TaskStatus.BACKLOG:
         return 'bg-gray-500';
-      case 'scheduled':
+      case TaskStatus.SCHEDULED:
         return 'bg-blue-500';
-      case 'progress':
+      case TaskStatus.PROGRESS:
         return 'bg-yellow-500';
-      case 'completed':
+      case TaskStatus.COMPLETED:
         return 'bg-green-500';
       default:
         return 'bg-gray-500';
@@ -156,13 +157,13 @@ export function StatisticsPage({ tasks, onBack }: StatisticsPageProps) {
 
   const getStatusLabel = (status: TaskStatus): string => {
     switch (status) {
-      case 'backlog':
+      case TaskStatus.BACKLOG:
         return 'Backlog';
-      case 'scheduled':
+      case TaskStatus.SCHEDULED:
         return 'Scheduled';
-      case 'progress':
+      case TaskStatus.PROGRESS:
         return 'In Progress';
-      case 'completed':
+      case TaskStatus.COMPLETED:
         return 'Completed';
       default:
         return 'Unknown';

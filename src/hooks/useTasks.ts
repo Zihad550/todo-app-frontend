@@ -1,10 +1,6 @@
 import { useState, useCallback } from 'react';
-import type {
-  Task,
-  CreateTaskInput,
-  UpdateTaskInput,
-  TaskStatus,
-} from '@/types/task';
+import type { Task, CreateTaskInput, UpdateTaskInput } from '@/types/task';
+import { TaskStatus } from '@/types/task';
 
 const sampleTasks: Task[] = [
   {
@@ -14,7 +10,7 @@ const sampleTasks: Task[] = [
       'This is a sample task to get you started. You can edit, complete, or delete it.',
     tags: ['welcome', 'sample'],
     completed: false,
-    status: 'backlog',
+    status: TaskStatus.BACKLOG,
     createdAt: new Date(Date.now() - 86400000), // 1 day ago
     updatedAt: new Date(Date.now() - 86400000),
   },
@@ -24,7 +20,7 @@ const sampleTasks: Task[] = [
     description: 'Click the "Add New Task" button to create your first task.',
     tags: ['tutorial'],
     completed: false,
-    status: 'scheduled',
+    status: TaskStatus.SCHEDULED,
     createdAt: new Date(Date.now() - 43200000), // 12 hours ago
     updatedAt: new Date(Date.now() - 43200000),
   },
@@ -35,7 +31,7 @@ const sampleTasks: Task[] = [
       'Try using filters, tags, and the search functionality to organize your tasks.',
     tags: ['features', 'tutorial'],
     completed: true,
-    status: 'completed',
+    status: TaskStatus.COMPLETED,
     createdAt: new Date(Date.now() - 21600000), // 6 hours ago
     updatedAt: new Date(Date.now() - 10800000), // 3 hours ago
   },
@@ -45,7 +41,7 @@ const sampleTasks: Task[] = [
     description: 'Add drag and drop functionality to the Kanban board.',
     tags: ['development', 'feature'],
     completed: false,
-    status: 'progress',
+    status: TaskStatus.PROGRESS,
     createdAt: new Date(Date.now() - 7200000), // 2 hours ago
     updatedAt: new Date(Date.now() - 7200000),
   },
@@ -55,7 +51,7 @@ const sampleTasks: Task[] = [
     description: 'This is the first task in backlog for testing reordering.',
     tags: ['test'],
     completed: false,
-    status: 'backlog',
+    status: TaskStatus.BACKLOG,
     createdAt: new Date(Date.now() - 3600000), // 1 hour ago
     updatedAt: new Date(Date.now() - 3600000),
   },
@@ -65,7 +61,7 @@ const sampleTasks: Task[] = [
     description: 'This is the second task in backlog for testing reordering.',
     tags: ['test'],
     completed: false,
-    status: 'backlog',
+    status: TaskStatus.BACKLOG,
     createdAt: new Date(Date.now() - 1800000), // 30 minutes ago
     updatedAt: new Date(Date.now() - 1800000),
   },
@@ -75,7 +71,7 @@ const sampleTasks: Task[] = [
     description: 'This is the third task in backlog for testing reordering.',
     tags: ['test'],
     completed: false,
-    status: 'backlog',
+    status: TaskStatus.BACKLOG,
     createdAt: new Date(Date.now() - 900000), // 15 minutes ago
     updatedAt: new Date(Date.now() - 900000),
   },
@@ -91,7 +87,7 @@ export const useTasks = () => {
       description: input.description,
       tags: input.tags,
       completed: false,
-      status: 'backlog',
+      status: TaskStatus.BACKLOG,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -106,23 +102,27 @@ export const useTasks = () => {
         if (task.id === id) {
           const updatedTask = { ...task, ...updates, updatedAt: new Date() };
           // Sync completed status with task status
-          if (updates.status === 'completed') {
+          if (updates.status === TaskStatus.COMPLETED) {
             updatedTask.completed = true;
           } else if (
             updates.status &&
-            ['backlog', 'scheduled', 'progress'].includes(updates.status) &&
+            [
+              TaskStatus.BACKLOG,
+              TaskStatus.SCHEDULED,
+              TaskStatus.PROGRESS,
+            ].includes(updates.status) &&
             updates.completed === undefined
           ) {
             updatedTask.completed = false;
           }
           // Sync status with completed flag
           if (updates.completed === true && !updates.status) {
-            updatedTask.status = 'completed';
+            updatedTask.status = TaskStatus.COMPLETED;
           } else if (
             updates.completed === false &&
-            task.status === 'completed'
+            task.status === TaskStatus.COMPLETED
           ) {
-            updatedTask.status = 'backlog';
+            updatedTask.status = TaskStatus.BACKLOG;
           }
           return updatedTask;
         }

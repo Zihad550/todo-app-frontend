@@ -24,12 +24,8 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import type {
-  Task,
-  CreateTaskInput,
-  UpdateTaskInput,
-  TaskStatus,
-} from '@/types/task';
+import type { Task, CreateTaskInput, UpdateTaskInput } from '@/types/task';
+import { TaskStatus } from '@/types/task';
 
 type ViewMode = 'list' | 'kanban';
 
@@ -102,10 +98,10 @@ function TasksPage({
   const handleMoveTask = (taskId: string, newStatus: TaskStatus) => {
     moveTask(taskId, newStatus);
     const statusLabels: Record<TaskStatus, string> = {
-      backlog: 'Backlog',
-      scheduled: 'Scheduled',
-      progress: 'In Progress',
-      completed: 'Completed',
+      [TaskStatus.BACKLOG]: 'Backlog',
+      [TaskStatus.SCHEDULED]: 'Scheduled',
+      [TaskStatus.PROGRESS]: 'In Progress',
+      [TaskStatus.COMPLETED]: 'Completed',
     };
     const statusLabel = statusLabels[newStatus] || 'Unknown Status';
     toast.success(`Task moved to ${statusLabel}!`);

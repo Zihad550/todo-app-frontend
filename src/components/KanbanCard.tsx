@@ -10,7 +10,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Edit, Trash2 } from 'lucide-react';
-import type { Task, TaskStatus } from '@/types/task';
+import type { Task } from '@/types/task';
+import { TaskStatus } from '@/types/task';
 import { useState } from 'react';
 import { TaskForm } from './TaskForm';
 
@@ -92,10 +93,10 @@ export function KanbanCard({
   };
 
   const statusOptions = [
-    { value: 'backlog', label: 'Backlog' },
-    { value: 'scheduled', label: 'Scheduled' },
-    { value: 'progress', label: 'In Progress' },
-    { value: 'completed', label: 'Completed' },
+    { value: TaskStatus.BACKLOG, label: 'Backlog' },
+    { value: TaskStatus.SCHEDULED, label: 'Scheduled' },
+    { value: TaskStatus.PROGRESS, label: 'In Progress' },
+    { value: TaskStatus.COMPLETED, label: 'Completed' },
   ];
 
   if (isEditing) {

@@ -12,7 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
-import type { Task, TaskStatus } from '@/types/task';
+import type { Task } from '@/types/task';
+import { TaskStatus } from '@/types/task';
 
 interface KanbanBoardProps {
   tasks: Task[];
@@ -24,19 +25,23 @@ interface KanbanBoardProps {
 }
 
 const columns: { id: TaskStatus; title: string; color: string }[] = [
-  { id: 'backlog', title: 'Backlog', color: 'bg-gray-100 dark:bg-gray-800' },
   {
-    id: 'scheduled',
+    id: TaskStatus.BACKLOG,
+    title: 'Backlog',
+    color: 'bg-gray-100 dark:bg-gray-800',
+  },
+  {
+    id: TaskStatus.SCHEDULED,
     title: 'Scheduled',
     color: 'bg-blue-100 dark:bg-blue-900/20',
   },
   {
-    id: 'progress',
+    id: TaskStatus.PROGRESS,
     title: 'In Progress',
     color: 'bg-yellow-100 dark:bg-yellow-900/20',
   },
   {
-    id: 'completed',
+    id: TaskStatus.COMPLETED,
     title: 'Completed',
     color: 'bg-green-100 dark:bg-green-900/20',
   },
@@ -64,7 +69,7 @@ function MobileKanbanView({
   onToggleCollapse,
 }: MobileKanbanViewProps) {
   return (
-    <Tabs defaultValue="backlog" className="h-full">
+    <Tabs defaultValue={TaskStatus.BACKLOG} className="h-full">
       <TabsList className="grid w-full grid-cols-4 mb-4">
         {columns.map((column) => (
           <TabsTrigger
@@ -154,10 +159,10 @@ export function KanbanBoard({
 
     // Check if we're dropping on a column or a task
     const validStatuses: TaskStatus[] = [
-      'backlog',
-      'scheduled',
-      'progress',
-      'completed',
+      TaskStatus.BACKLOG,
+      TaskStatus.SCHEDULED,
+      TaskStatus.PROGRESS,
+      TaskStatus.COMPLETED,
     ];
 
     let targetStatus: TaskStatus;

@@ -1,4 +1,9 @@
-export type TaskStatus = 'backlog' | 'scheduled' | 'progress' | 'completed';
+export enum TaskStatus {
+  BACKLOG = 'backlog',
+  SCHEDULED = 'scheduled',
+  PROGRESS = 'progress',
+  COMPLETED = 'completed',
+}
 
 export interface Task {
   id: string;
