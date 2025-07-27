@@ -14,7 +14,15 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, CheckSquare, Filter, LayoutGrid, List, Tag } from 'lucide-react';
+import {
+  Plus,
+  CheckSquare,
+  Filter,
+  LayoutGrid,
+  List,
+  Tag,
+  BarChart3,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import type {
   Task,
@@ -26,10 +34,16 @@ import type {
 type ViewMode = 'list' | 'kanban';
 
 interface TasksPageProps {
+  tasksData: ReturnType<typeof useTasks>;
   onNavigateToTags: () => void;
+  onNavigateToStatistics: () => void;
 }
 
-function TasksPage({ onNavigateToTags }: TasksPageProps) {
+function TasksPage({
+  tasksData,
+  onNavigateToTags,
+  onNavigateToStatistics,
+}: TasksPageProps) {
   const {
     tasks,
     createTask,
@@ -38,7 +52,7 @@ function TasksPage({ onNavigateToTags }: TasksPageProps) {
     toggleTask,
     moveTask,
     reorderTasks,
-  } = useTasks();
+  } = tasksData;
   const {
     searchTerm,
     setSearchTerm,
@@ -188,6 +202,15 @@ function TasksPage({ onNavigateToTags }: TasksPageProps) {
           >
             <Tag className="h-4 w-4 mr-2" />
             Manage Tags
+          </Button>
+
+          <Button
+            onClick={onNavigateToStatistics}
+            variant="outline"
+            className="flex-1 sm:flex-none"
+          >
+            <BarChart3 className="h-4 w-4 mr-2" />
+            Statistics
           </Button>
 
           {tasks.length > 0 && (
