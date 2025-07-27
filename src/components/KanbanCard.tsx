@@ -12,6 +12,7 @@ interface KanbanCardProps {
   onUpdate: (id: string, updates: Partial<Task>) => void;
   onDelete: (id: string) => void;
   isDragging?: boolean;
+  availableTags?: string[];
 }
 
 export function KanbanCard({
@@ -19,6 +20,7 @@ export function KanbanCard({
   onUpdate,
   onDelete,
   isDragging = false,
+  availableTags = [],
 }: KanbanCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [showActions, setShowActions] = useState(false);
@@ -82,6 +84,7 @@ export function KanbanCard({
           onSubmit={handleUpdate}
           onCancel={() => setIsEditing(false)}
           submitLabel="Update Task"
+          availableTags={availableTags}
         />
       </div>
     );

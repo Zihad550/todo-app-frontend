@@ -159,6 +159,7 @@ function TasksPage() {
             <TaskForm
               onSubmit={handleCreateTask}
               onCancel={() => setShowForm(false)}
+              availableTags={availableTags}
             />
           </div>
         )}
@@ -187,6 +188,7 @@ function TasksPage() {
             onUpdate={handleUpdateTask}
             onDelete={handleDeleteTask}
             onToggle={handleToggleTask}
+            availableTags={availableTags}
           />
         ) : (
           <KanbanBoard
@@ -195,6 +197,7 @@ function TasksPage() {
             onReorderTasks={reorderTasks}
             onUpdateTask={handleUpdateTask}
             onDeleteTask={handleDeleteTask}
+            availableTags={availableTags}
           />
         )}
       </div>

@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Edit2, Trash2, Save, X, Plus } from 'lucide-react';
+import { TagSelector } from '@/components/TagSelector';
+import { Edit2, Trash2, Save, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TaskItemProps {
@@ -13,6 +14,7 @@ interface TaskItemProps {
   onUpdate: (id: string, updates: UpdateTaskInput) => void;
   onDelete: (id: string) => void;
   onToggle: (id: string) => void;
+  availableTags?: string[];
 }
 
 export const TaskItem = ({
@@ -20,12 +22,12 @@ export const TaskItem = ({
   onUpdate,
   onDelete,
   onToggle,
+  availableTags = [],
 }: TaskItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
   const [editDescription, setEditDescription] = useState(task.description);
   const [editTags, setEditTags] = useState<string[]>(task.tags);
-  const [tagInput, setTagInput] = useState('');
 
   const handleSave = () => {
     onUpdate(task.id, {
@@ -40,27 +42,7 @@ export const TaskItem = ({
     setEditTitle(task.title);
     setEditDescription(task.description);
     setEditTags(task.tags);
-    setTagInput('');
     setIsEditing(false);
-  };
-
-  const addTag = () => {
-    const tag = tagInput.trim();
-    if (tag && !editTags.includes(tag)) {
-      setEditTags([...editTags, tag]);
-      setTagInput('');
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    setEditTags(editTags.filter((tag) => tag !== tagToRemove));
-  };
-
-  const handleTagKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addTag();
-    }
   };
 
   const formatDate = (date: Date) => {
@@ -109,43 +91,12 @@ export const TaskItem = ({
         </div>
 
         <div>
-          <div className="flex gap-2 mb-2">
-            <Input
-              placeholder="Add tag..."
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyPress={handleTagKeyPress}
-            />
-            <Button
-              type="button"
-              onClick={addTag}
-              size="icon"
-              variant="outline"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {editTags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {editTags.map((tag) => (
-                <Badge
-                  key={tag}
-                  variant="secondary"
-                  className="flex items-center gap-1"
-                >
-                  {tag}
-                  <button
-                    type="button"
-                    onClick={() => removeTag(tag)}
-                    className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
-            </div>
-          )}
+          <TagSelector
+            selectedTags={editTags}
+            availableTags={availableTags}
+            onTagsChange={setEditTags}
+            placeholder="Select or create tags..."
+          />
         </div>
 
         <div className="flex gap-2">

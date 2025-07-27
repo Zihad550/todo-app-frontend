@@ -20,6 +20,7 @@ interface KanbanBoardProps {
   onReorderTasks: (tasks: Task[]) => void;
   onUpdateTask: (id: string, updates: Partial<Task>) => void;
   onDeleteTask: (id: string) => void;
+  availableTags?: string[];
 }
 
 const columns: { id: TaskStatus; title: string; color: string }[] = [
@@ -47,6 +48,7 @@ export function KanbanBoard({
   onReorderTasks,
   onUpdateTask,
   onDeleteTask,
+  availableTags = [],
 }: KanbanBoardProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
@@ -156,6 +158,7 @@ export function KanbanBoard({
             tasks={tasksByStatus[column.id] || []}
             onUpdateTask={onUpdateTask}
             onDeleteTask={onDeleteTask}
+            availableTags={availableTags}
           />
         ))}
       </div>

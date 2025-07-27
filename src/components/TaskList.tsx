@@ -6,6 +6,7 @@ interface TaskListProps {
   onUpdate: (id: string, updates: UpdateTaskInput) => void;
   onDelete: (id: string) => void;
   onToggle: (id: string) => void;
+  availableTags?: string[];
 }
 
 export const TaskList = ({
@@ -13,6 +14,7 @@ export const TaskList = ({
   onUpdate,
   onDelete,
   onToggle,
+  availableTags = [],
 }: TaskListProps) => {
   if (tasks.length === 0) {
     return (
@@ -32,6 +34,7 @@ export const TaskList = ({
           onUpdate={onUpdate}
           onDelete={onDelete}
           onToggle={onToggle}
+          availableTags={availableTags}
         />
       ))}
     </div>

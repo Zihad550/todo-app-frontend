@@ -13,6 +13,7 @@ interface KanbanColumnProps {
   tasks: Task[];
   onUpdateTask: (id: string, updates: Partial<Task>) => void;
   onDeleteTask: (id: string) => void;
+  availableTags?: string[];
 }
 
 export function KanbanColumn({
@@ -22,6 +23,7 @@ export function KanbanColumn({
   tasks,
   onUpdateTask,
   onDeleteTask,
+  availableTags = [],
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id,
@@ -53,6 +55,7 @@ export function KanbanColumn({
                 task={task}
                 onUpdate={onUpdateTask}
                 onDelete={onDeleteTask}
+                availableTags={availableTags}
               />
             ))}
           </div>
