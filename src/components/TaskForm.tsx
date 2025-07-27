@@ -11,6 +11,7 @@ interface TaskFormProps {
   initialData?: CreateTaskInput;
   submitLabel?: string;
   availableTags?: string[];
+  variant?: 'default' | 'modal';
 }
 
 export const TaskForm = ({
@@ -19,6 +20,7 @@ export const TaskForm = ({
   initialData,
   submitLabel = 'Add Task',
   availableTags = [],
+  variant = 'default',
 }: TaskFormProps) => {
   const [title, setTitle] = useState(initialData?.title || '');
   const [description, setDescription] = useState(
@@ -52,10 +54,14 @@ export const TaskForm = ({
     }
   };
 
+  const isModal = variant === 'modal';
+
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-4 p-4 border rounded-lg bg-card"
+      className={
+        isModal ? 'space-y-4' : 'space-y-4 p-4 border rounded-lg bg-card'
+      }
     >
       <div>
         <Input
@@ -63,6 +69,7 @@ export const TaskForm = ({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
+          autoFocus={isModal}
         />
       </div>
 
@@ -84,9 +91,14 @@ export const TaskForm = ({
         />
       </div>
 
-      <div className="flex gap-2">
+      <div className={`flex gap-2 ${isModal ? 'justify-end pt-4' : ''}`}>
+        {isModal && onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+        )}
         <Button type="submit">{submitLabel}</Button>
-        {onCancel && (
+        {!isModal && onCancel && (
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>

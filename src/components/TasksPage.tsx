@@ -7,6 +7,12 @@ import { TaskFilters } from '@/components/TaskFilters';
 import { KanbanBoard } from '@/components/KanbanBoard';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Plus, CheckSquare, Filter, LayoutGrid, List } from 'lucide-react';
 import { toast } from 'sonner';
 import type {
@@ -108,15 +114,13 @@ function TasksPage() {
 
         {/* Action Buttons */}
         <div className="flex gap-2 mb-6 flex-wrap">
-          {!showForm && (
-            <Button
-              onClick={() => setShowForm(true)}
-              className="flex-1 sm:flex-none"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add New Task
-            </Button>
-          )}
+          <Button
+            onClick={() => setShowForm(true)}
+            className="flex-1 sm:flex-none"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add New Task
+          </Button>
 
           {tasks.length > 0 && (
             <>
@@ -153,16 +157,20 @@ function TasksPage() {
           )}
         </div>
 
-        {/* Task Form */}
-        {showForm && (
-          <div className="mb-6">
+        {/* Task Form Modal */}
+        <Dialog open={showForm} onOpenChange={setShowForm}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Create New Task</DialogTitle>
+            </DialogHeader>
             <TaskForm
               onSubmit={handleCreateTask}
               onCancel={() => setShowForm(false)}
               availableTags={availableTags}
+              variant="modal"
             />
-          </div>
-        )}
+          </DialogContent>
+        </Dialog>
 
         {/* Filters */}
         {showFilters && tasks.length > 0 && viewMode === 'list' && (
