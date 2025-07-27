@@ -1,5 +1,9 @@
 import { useState } from 'react';
-import { useTags, type CreateTagInput } from '@/hooks/useTags';
+import {
+  useTags,
+  type CreateTagInput,
+  type TagWithMetadata,
+} from '@/hooks/useTags';
 import { useTasks } from '@/hooks/useTasks';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

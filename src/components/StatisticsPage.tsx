@@ -15,10 +15,12 @@ import {
   Target,
 } from 'lucide-react';
 import type { Task } from '@/types/task';
+import type { TagWithMetadata } from '@/hooks/useTags';
 import { TaskStatus } from '@/types/task';
 
 interface StatisticsPageProps {
   tasks: Task[];
+  tags: TagWithMetadata[];
   onBack: () => void;
 }
 
@@ -43,7 +45,7 @@ interface TimeStats {
   older: number;
 }
 
-export function StatisticsPage({ tasks, onBack }: StatisticsPageProps) {
+export function StatisticsPage({ tasks, tags, onBack }: StatisticsPageProps) {
   const stats = useMemo(() => {
     const totalTasks = tasks.length;
     const completedTasks = tasks.filter((task) => task.completed).length;
@@ -62,12 +64,15 @@ export function StatisticsPage({ tasks, onBack }: StatisticsPageProps) {
     // Tag statistics
     const tagMap = new Map<string, { total: number; completed: number }>();
     tasks.forEach((task) => {
-      task.tags.forEach((tag) => {
-        const current = tagMap.get(tag) || { total: 0, completed: 0 };
-        tagMap.set(tag, {
-          total: current.total + 1,
-          completed: current.completed + (task.completed ? 1 : 0),
-        });
+      task.tagIds.forEach((tagId) => {
+        const tag = tags.find((t) => t.id === tagId);
+        if (tag) {
+          const current = tagMap.get(tag.name) || { total: 0, completed: 0 };
+          tagMap.set(tag.name, {
+            total: current.total + 1,
+            completed: current.completed + (task.completed ? 1 : 0),
+          });
+        }
       });
     });
 

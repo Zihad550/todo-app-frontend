@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select';
 import { Edit, Trash2 } from 'lucide-react';
 import type { Task } from '@/types/task';
+import type { TagWithMetadata } from '@/hooks/useTags';
 import { TaskStatus } from '@/types/task';
 import { useState } from 'react';
 import { TaskForm } from './TaskForm';
@@ -21,7 +22,7 @@ interface KanbanCardProps {
   onDelete: (id: string) => void;
   onMoveTask?: (taskId: string, newStatus: TaskStatus) => void;
   isDragging?: boolean;
-  availableTags?: string[];
+  availableTags?: TagWithMetadata[];
   isMobile?: boolean;
   disableDragAndDrop?: boolean;
 }
@@ -110,7 +111,7 @@ export function KanbanCard({
           initialData={{
             title: task.title,
             description: task.description,
-            tags: task.tags,
+            tagIds: task.tagIds,
           }}
           onSubmit={handleUpdate}
           onCancel={() => setIsEditing(false)}
@@ -208,19 +209,22 @@ export function KanbanCard({
         </p>
       )}
 
-      {task.tags.length > 0 && (
+      {task.tagIds.length > 0 && (
         <div className={`flex flex-wrap gap-1 ${isMobile ? 'mb-3' : 'mb-2'}`}>
-          {task.tags.map((tag) => (
-            <Badge
-              key={tag}
-              variant="secondary"
-              className={`px-2 py-0.5 truncate ${
-                isMobile ? 'text-xs h-5 max-w-28' : 'text-xs h-4 max-w-20'
-              }`}
-            >
-              {tag}
-            </Badge>
-          ))}
+          {task.tagIds.map((tagId) => {
+            const tag = availableTags?.find((t) => t.id === tagId);
+            return tag ? (
+              <Badge
+                key={tag.id}
+                variant="secondary"
+                className={`px-2 py-0.5 truncate ${
+                  isMobile ? 'text-xs h-5 max-w-28' : 'text-xs h-4 max-w-20'
+                }`}
+              >
+                {tag.name}
+              </Badge>
+            ) : null;
+          })}
         </div>
       )}
 

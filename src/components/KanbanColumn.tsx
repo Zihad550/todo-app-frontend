@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { KanbanCard } from './KanbanCard';
 import type { Task, TaskStatus } from '@/types/task';
+import type { TagWithMetadata } from '@/hooks/useTags';
 
 interface KanbanColumnProps {
   id: TaskStatus;
@@ -16,7 +17,7 @@ interface KanbanColumnProps {
   onUpdateTask: (id: string, updates: Partial<Task>) => void;
   onDeleteTask: (id: string) => void;
   onMoveTask?: (taskId: string, newStatus: TaskStatus) => void;
-  availableTags?: string[];
+  availableTags?: TagWithMetadata[];
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   isMobile?: boolean;

@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
 import type { Task } from '@/types/task';
+import type { TagWithMetadata } from '@/hooks/useTags';
 import { TaskStatus } from '@/types/task';
 
 interface KanbanBoardProps {
@@ -21,7 +22,7 @@ interface KanbanBoardProps {
   onReorderTasks: (tasks: Task[]) => void;
   onUpdateTask: (id: string, updates: Partial<Task>) => void;
   onDeleteTask: (id: string) => void;
-  availableTags?: string[];
+  availableTags?: TagWithMetadata[];
 }
 
 const columns: { id: TaskStatus; title: string; color: string }[] = [
@@ -53,7 +54,7 @@ interface MobileKanbanViewProps {
   onUpdateTask: (id: string, updates: Partial<Task>) => void;
   onDeleteTask: (id: string) => void;
   onMoveTask: (taskId: string, newStatus: TaskStatus) => void;
-  availableTags: string[];
+  availableTags: TagWithMetadata[];
   collapsedColumns: Set<TaskStatus>;
   onToggleCollapse: (columnId: TaskStatus) => void;
 }

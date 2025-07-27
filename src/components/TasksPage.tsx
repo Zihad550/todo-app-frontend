@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTasks } from '@/hooks/useTasks';
+import { useTags } from '@/hooks/useTags';
 import { useTaskFilters } from '@/hooks/useTaskFilters';
 import { TaskForm } from '@/components/TaskForm';
 import { TaskList } from '@/components/TaskList';
@@ -49,6 +50,7 @@ function TasksPage({
     moveTask,
     reorderTasks,
   } = tasksData;
+  const { tags } = useTags(tasks);
   const {
     searchTerm,
     setSearchTerm,
@@ -253,7 +255,7 @@ function TasksPage({
             <TaskForm
               onSubmit={handleCreateTask}
               onCancel={() => setShowForm(false)}
-              availableTags={availableTags}
+              availableTags={tags}
               variant="modal"
             />
           </DialogContent>
@@ -320,7 +322,7 @@ function TasksPage({
                       }
                     : undefined
                 }
-                availableTags={availableTags}
+                availableTags={tags}
               />
             </TabsContent>
 
@@ -349,7 +351,7 @@ function TasksPage({
                       }
                     : undefined
                 }
-                availableTags={availableTags}
+                availableTags={tags}
               />
             </TabsContent>
           </Tabs>
@@ -360,7 +362,7 @@ function TasksPage({
             onReorderTasks={reorderTasks}
             onUpdateTask={handleUpdateTask}
             onDeleteTask={handleDeleteTask}
-            availableTags={availableTags}
+            availableTags={tags}
           />
         )}
       </div>

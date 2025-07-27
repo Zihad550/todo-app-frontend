@@ -14,6 +14,7 @@ import {
 } from '@dnd-kit/sortable';
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import type { Task, UpdateTaskInput } from '@/types/task';
+import type { TagWithMetadata } from '@/hooks/useTags';
 import { TaskItem } from './TaskItem';
 
 interface TaskListProps {
@@ -22,7 +23,7 @@ interface TaskListProps {
   onDelete: (id: string) => void;
   onToggle: (id: string) => void;
   onReorder?: (tasks: Task[]) => void;
-  availableTags?: string[];
+  availableTags?: TagWithMetadata[];
 }
 
 export const TaskList = ({

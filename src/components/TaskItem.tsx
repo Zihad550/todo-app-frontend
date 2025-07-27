@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { Task, UpdateTaskInput } from '@/types/task';
+import type { TagWithMetadata } from '@/hooks/useTags';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,7 +17,7 @@ interface TaskItemProps {
   onUpdate: (id: string, updates: UpdateTaskInput) => void;
   onDelete: (id: string) => void;
   onToggle: (id: string) => void;
-  availableTags?: string[];
+  availableTags?: TagWithMetadata[];
   isDraggable?: boolean;
   isDragging?: boolean;
 }
@@ -33,7 +34,7 @@ export const TaskItem = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
   const [editDescription, setEditDescription] = useState(task.description);
-  const [editTags, setEditTags] = useState<string[]>(task.tags);
+  const [editTagIds, setEditTagIds] = useState<string[]>(task.tagIds);
 
   const {
     attributes,
@@ -56,7 +57,7 @@ export const TaskItem = ({
     onUpdate(task.id, {
       title: editTitle.trim(),
       description: editDescription.trim(),
-      tags: editTags,
+      tagIds: editTagIds,
     });
     setIsEditing(false);
   };
@@ -64,7 +65,7 @@ export const TaskItem = ({
   const handleCancel = () => {
     setEditTitle(task.title);
     setEditDescription(task.description);
-    setEditTags(task.tags);
+    setEditTagIds(task.tagIds);
     setIsEditing(false);
   };
 
@@ -119,9 +120,9 @@ export const TaskItem = ({
 
         <div>
           <TagSelector
-            selectedTags={editTags}
+            selectedTagIds={editTagIds}
             availableTags={availableTags}
-            onTagsChange={setEditTags}
+            onTagIdsChange={setEditTagIds}
             placeholder="Select or create tags..."
           />
         </div>
@@ -209,13 +210,16 @@ export const TaskItem = ({
             </p>
           )}
 
-          {task.tags.length > 0 && (
+          {task.tagIds.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {task.tags.map((tag) => (
-                <Badge key={tag} variant="outline" className="text-xs">
-                  {tag}
-                </Badge>
-              ))}
+              {task.tagIds.map((tagId) => {
+                const tag = availableTags?.find((t) => t.id === tagId);
+                return tag ? (
+                  <Badge key={tag.id} variant="outline" className="text-xs">
+                    {tag.name}
+                  </Badge>
+                ) : null;
+              })}
             </div>
           )}
 

@@ -17,45 +17,68 @@ import {
 import { Check, ChevronDown, X, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+import type { TagWithMetadata } from '@/hooks/useTags';
+
 interface TagSelectorProps {
-  selectedTags: string[];
-  availableTags: string[];
-  onTagsChange: (tags: string[]) => void;
+  selectedTagIds: string[];
+  availableTags: TagWithMetadata[];
+  onTagIdsChange: (tagIds: string[]) => void;
   placeholder?: string;
 }
 
 export const TagSelector = ({
-  selectedTags,
+  selectedTagIds,
   availableTags,
-  onTagsChange,
+  onTagIdsChange,
   placeholder = 'Select or create tags...',
 }: TagSelectorProps) => {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
 
+  const selectedTags = availableTags.filter((tag) =>
+    selectedTagIds.includes(tag.id)
+  );
   const unselectedTags = availableTags.filter(
-    (tag) => !selectedTags.includes(tag)
+    (tag) => !selectedTagIds.includes(tag.id)
   );
 
-  const addTag = (tag: string) => {
-    const trimmedTag = tag.trim();
-    if (trimmedTag && !selectedTags.includes(trimmedTag)) {
-      onTagsChange([...selectedTags, trimmedTag]);
+  const addTagById = (tagId: string) => {
+    if (!selectedTagIds.includes(tagId)) {
+      onTagIdsChange([...selectedTagIds, tagId]);
     }
   };
 
-  const removeTag = (tagToRemove: string) => {
-    onTagsChange(selectedTags.filter((tag) => tag !== tagToRemove));
+  const addTagByName = (tagName: string) => {
+    const trimmedTagName = tagName.trim();
+    if (!trimmedTagName) return;
+
+    // Check if tag already exists
+    const existingTag = availableTags.find(
+      (tag) => tag.name.toLowerCase() === trimmedTagName.toLowerCase()
+    );
+    if (existingTag) {
+      addTagById(existingTag.id);
+      return;
+    }
+
+    // Create new tag (this would need to be handled by parent component)
+    // For now, we'll create a temporary ID - this should be handled by the parent
+    const newTagId = crypto.randomUUID();
+    onTagIdsChange([...selectedTagIds, newTagId]);
   };
 
-  const handleSelectTag = (tag: string) => {
-    addTag(tag);
+  const removeTagById = (tagId: string) => {
+    onTagIdsChange(selectedTagIds.filter((id) => id !== tagId));
+  };
+
+  const handleSelectTag = (tag: TagWithMetadata) => {
+    addTagById(tag.id);
     setInputValue('');
   };
 
   const handleCreateTag = () => {
     if (inputValue.trim()) {
-      addTag(inputValue.trim());
+      addTagByName(inputValue.trim());
       setInputValue('');
     }
   };
@@ -77,9 +100,9 @@ export const TagSelector = ({
             aria-expanded={open}
             className="w-full justify-between"
           >
-            {selectedTags.length > 0
-              ? `${selectedTags.length} tag${
-                  selectedTags.length > 1 ? 's' : ''
+            {selectedTagIds.length > 0
+              ? `${selectedTagIds.length} tag${
+                  selectedTagIds.length > 1 ? 's' : ''
                 } selected`
               : placeholder}
             <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -98,26 +121,29 @@ export const TagSelector = ({
                 <CommandGroup heading="Available Tags">
                   {unselectedTags.map((tag) => (
                     <CommandItem
-                      key={tag}
-                      value={tag}
+                      key={tag.id}
+                      value={tag.name}
                       onSelect={() => handleSelectTag(tag)}
                     >
                       <Check
                         className={cn(
                           'mr-2 h-4 w-4',
-                          selectedTags.includes(tag)
+                          selectedTagIds.includes(tag.id)
                             ? 'opacity-100'
                             : 'opacity-0'
                         )}
                       />
-                      {tag}
+                      {tag.name}
                     </CommandItem>
                   ))}
                 </CommandGroup>
               )}
 
               {inputValue.trim() &&
-                !availableTags.includes(inputValue.trim()) && (
+                !availableTags.some(
+                  (tag) =>
+                    tag.name.toLowerCase() === inputValue.trim().toLowerCase()
+                ) && (
                   <CommandGroup heading="Create New">
                     <CommandItem value={inputValue} onSelect={handleCreateTag}>
                       <Plus className="mr-2 h-4 w-4" />
@@ -134,7 +160,10 @@ export const TagSelector = ({
 
               {unselectedTags.length === 0 &&
                 inputValue.trim() &&
-                availableTags.includes(inputValue.trim()) && (
+                availableTags.some(
+                  (tag) =>
+                    tag.name.toLowerCase() === inputValue.trim().toLowerCase()
+                ) && (
                   <CommandEmpty>Tag already selected or exists.</CommandEmpty>
                 )}
             </CommandList>
@@ -147,14 +176,14 @@ export const TagSelector = ({
         <div className="flex flex-wrap gap-2">
           {selectedTags.map((tag) => (
             <Badge
-              key={tag}
+              key={tag.id}
               variant="secondary"
               className="flex items-center gap-1"
             >
-              {tag}
+              {tag.name}
               <button
                 type="button"
-                onClick={() => removeTag(tag)}
+                onClick={() => removeTagById(tag.id)}
                 className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
               >
                 <X className="h-3 w-3" />

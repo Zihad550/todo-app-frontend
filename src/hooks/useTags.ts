@@ -1,9 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
-import type { Task } from '@/types/task';
+import type { Task, Tag } from '@/types/task';
 
-export interface Tag {
-  id: string;
-  name: string;
+export interface TagWithMetadata extends Tag {
   color: string;
   createdAt: Date;
   updatedAt: Date;
@@ -32,24 +30,61 @@ const defaultColors = [
   '#84cc16', // lime
 ];
 
+// Default tags that match the sample data
+const defaultTags: TagWithMetadata[] = [
+  {
+    id: 'tag-welcome',
+    name: 'welcome',
+    color: '#ef4444',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: 'tag-sample',
+    name: 'sample',
+    color: '#f97316',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: 'tag-tutorial',
+    name: 'tutorial',
+    color: '#eab308',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: 'tag-features',
+    name: 'features',
+    color: '#22c55e',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: 'tag-development',
+    name: 'development',
+    color: '#06b6d4',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: 'tag-feature',
+    name: 'feature',
+    color: '#3b82f6',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: 'tag-test',
+    name: 'test',
+    color: '#8b5cf6',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+];
+
 export const useTags = (tasks: Task[]) => {
-  // Initialize tags from existing task tags
-  const initialTags = useMemo(() => {
-    const tagNames = new Set<string>();
-    tasks.forEach((task) => {
-      task.tags.forEach((tag) => tagNames.add(tag));
-    });
-
-    return Array.from(tagNames).map((name, index) => ({
-      id: crypto.randomUUID(),
-      name,
-      color: defaultColors[index % defaultColors.length],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }));
-  }, [tasks]);
-
-  const [tags, setTags] = useState<Tag[]>(initialTags);
+  const [tags, setTags] = useState<TagWithMetadata[]>(defaultTags);
 
   const createTag = useCallback(
     (input: CreateTagInput) => {
@@ -62,7 +97,7 @@ export const useTags = (tasks: Task[]) => {
         throw new Error('Tag already exists');
       }
 
-      const newTag: Tag = {
+      const newTag: TagWithMetadata = {
         id: crypto.randomUUID(),
         name: input.name.trim(),
         color: input.color,
@@ -110,9 +145,11 @@ export const useTags = (tasks: Task[]) => {
 
   const getTagUsageCount = useCallback(
     (tagName: string) => {
-      return tasks.filter((task) => task.tags.includes(tagName)).length;
+      const tag = tags.find((t) => t.name === tagName);
+      if (!tag) return 0;
+      return tasks.filter((task) => task.tagIds.includes(tag.id)).length;
     },
-    [tasks]
+    [tasks, tags]
   );
 
   const getTagByName = useCallback(
@@ -139,6 +176,22 @@ export const useTags = (tasks: Task[]) => {
     [tags, getTagUsageCount]
   );
 
+  const getTagById = useCallback(
+    (id: string) => {
+      return tags.find((tag) => tag.id === id);
+    },
+    [tags]
+  );
+
+  const getTagsByIds = useCallback(
+    (ids: string[]) => {
+      return ids
+        .map((id) => tags.find((tag) => tag.id === id))
+        .filter(Boolean) as TagWithMetadata[];
+    },
+    [tags]
+  );
+
   return {
     tags,
     createTag,
@@ -146,6 +199,8 @@ export const useTags = (tasks: Task[]) => {
     deleteTag,
     getTagUsageCount,
     getTagByName,
+    getTagById,
+    getTagsByIds,
     getUnusedTags,
     getMostUsedTags,
     defaultColors,

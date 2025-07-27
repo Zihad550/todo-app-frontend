@@ -4,13 +4,14 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { TagSelector } from '@/components/TagSelector';
 import type { CreateTaskInput } from '@/types/task';
+import type { TagWithMetadata } from '@/hooks/useTags';
 
 interface TaskFormProps {
   onSubmit: (task: CreateTaskInput) => void;
   onCancel?: () => void;
   initialData?: CreateTaskInput;
   submitLabel?: string;
-  availableTags?: string[];
+  availableTags?: TagWithMetadata[];
   variant?: 'default' | 'modal';
 }
 
@@ -26,13 +27,13 @@ export const TaskForm = ({
   const [description, setDescription] = useState(
     initialData?.description || ''
   );
-  const [tags, setTags] = useState<string[]>(initialData?.tags || []);
+  const [tagIds, setTagIds] = useState<string[]>(initialData?.tagIds || []);
 
   useEffect(() => {
     if (initialData) {
       setTitle(initialData.title || '');
       setDescription(initialData.description || '');
-      setTags(initialData.tags || []);
+      setTagIds(initialData.tagIds || []);
     }
   }, [initialData]);
 
@@ -43,14 +44,14 @@ export const TaskForm = ({
     onSubmit({
       title: title.trim(),
       description: description.trim(),
-      tags,
+      tagIds,
     });
 
     // Reset form only if not editing
     if (!initialData) {
       setTitle('');
       setDescription('');
-      setTags([]);
+      setTagIds([]);
     }
   };
 
@@ -84,9 +85,9 @@ export const TaskForm = ({
 
       <div>
         <TagSelector
-          selectedTags={tags}
+          selectedTagIds={tagIds}
           availableTags={availableTags}
-          onTagsChange={setTags}
+          onTagIdsChange={setTagIds}
           placeholder="Select or create tags..."
         />
       </div>

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import type { Task } from '@/types/task';
 import type { FilterType, SortType } from '@/components/TaskFilters';
+import type { TagWithMetadata } from '@/hooks/useTags';
 
 interface UseFiltersOptions {
   initialFilter?: FilterType;
@@ -9,7 +10,11 @@ interface UseFiltersOptions {
   initialSelectedTags?: string[];
 }
 
-export const useFilters = (tasks: Task[], options: UseFiltersOptions = {}) => {
+export const useFilters = (
+  tasks: Task[],
+  tags: TagWithMetadata[],
+  options: UseFiltersOptions = {}
+) => {
   const {
     initialFilter = 'all',
     initialSort = 'newest',
@@ -24,12 +29,15 @@ export const useFilters = (tasks: Task[], options: UseFiltersOptions = {}) => {
     useState<string[]>(initialSelectedTags);
 
   const availableTags = useMemo(() => {
-    const tagSet = new Set<string>();
+    const usedTagIds = new Set<string>();
     tasks.forEach((task) => {
-      task.tags.forEach((tag) => tagSet.add(tag));
+      task.tagIds.forEach((tagId) => usedTagIds.add(tagId));
     });
-    return Array.from(tagSet).sort();
-  }, [tasks]);
+    return tags
+      .filter((tag) => usedTagIds.has(tag.id))
+      .map((tag) => tag.name)
+      .sort();
+  }, [tasks, tags]);
 
   const filteredAndSortedTasks = useMemo(() => {
     let filtered = tasks;
@@ -40,9 +48,10 @@ export const useFilters = (tasks: Task[], options: UseFiltersOptions = {}) => {
         (task) =>
           task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
           task.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          task.tags.some((tag) =>
-            tag.toLowerCase().includes(searchTerm.toLowerCase())
-          )
+          task.tagIds.some((tagId) => {
+            const tag = tags.find((t) => t.id === tagId);
+            return tag?.name.toLowerCase().includes(searchTerm.toLowerCase());
+          })
       );
     }
 
@@ -56,7 +65,10 @@ export const useFilters = (tasks: Task[], options: UseFiltersOptions = {}) => {
     // Filter by tags
     if (selectedTags.length > 0) {
       filtered = filtered.filter((task) =>
-        selectedTags.some((tag) => task.tags.includes(tag))
+        selectedTags.some((selectedTagName) => {
+          const selectedTag = tags.find((t) => t.name === selectedTagName);
+          return selectedTag && task.tagIds.includes(selectedTag.id);
+        })
       );
     }
 

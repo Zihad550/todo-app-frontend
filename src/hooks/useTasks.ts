@@ -8,7 +8,7 @@ const sampleTasks: Task[] = [
     title: 'Welcome to your Todo App!',
     description:
       'This is a sample task to get you started. You can edit, complete, or delete it.',
-    tags: ['welcome', 'sample'],
+    tagIds: ['tag-welcome', 'tag-sample'],
     completed: false,
     status: TaskStatus.BACKLOG,
     createdAt: new Date(Date.now() - 86400000), // 1 day ago
@@ -18,7 +18,7 @@ const sampleTasks: Task[] = [
     id: '2',
     title: 'Try creating a new task',
     description: 'Click the "Add New Task" button to create your first task.',
-    tags: ['tutorial'],
+    tagIds: ['tag-tutorial'],
     completed: false,
     status: TaskStatus.SCHEDULED,
     createdAt: new Date(Date.now() - 43200000), // 12 hours ago
@@ -29,7 +29,7 @@ const sampleTasks: Task[] = [
     title: 'Explore the features',
     description:
       'Try using filters, tags, and the search functionality to organize your tasks.',
-    tags: ['features', 'tutorial'],
+    tagIds: ['tag-features', 'tag-tutorial'],
     completed: true,
     status: TaskStatus.COMPLETED,
     createdAt: new Date(Date.now() - 21600000), // 6 hours ago
@@ -39,7 +39,7 @@ const sampleTasks: Task[] = [
     id: '4',
     title: 'Implement drag and drop',
     description: 'Add drag and drop functionality to the Kanban board.',
-    tags: ['development', 'feature'],
+    tagIds: ['tag-development', 'tag-feature'],
     completed: false,
     status: TaskStatus.PROGRESS,
     createdAt: new Date(Date.now() - 7200000), // 2 hours ago
@@ -49,7 +49,7 @@ const sampleTasks: Task[] = [
     id: '5',
     title: 'First backlog task',
     description: 'This is the first task in backlog for testing reordering.',
-    tags: ['test'],
+    tagIds: ['tag-test'],
     completed: false,
     status: TaskStatus.BACKLOG,
     createdAt: new Date(Date.now() - 3600000), // 1 hour ago
@@ -59,7 +59,7 @@ const sampleTasks: Task[] = [
     id: '6',
     title: 'Second backlog task',
     description: 'This is the second task in backlog for testing reordering.',
-    tags: ['test'],
+    tagIds: ['tag-test'],
     completed: false,
     status: TaskStatus.BACKLOG,
     createdAt: new Date(Date.now() - 1800000), // 30 minutes ago
@@ -69,7 +69,7 @@ const sampleTasks: Task[] = [
     id: '7',
     title: 'Third backlog task',
     description: 'This is the third task in backlog for testing reordering.',
-    tags: ['test'],
+    tagIds: ['tag-test'],
     completed: false,
     status: TaskStatus.BACKLOG,
     createdAt: new Date(Date.now() - 900000), // 15 minutes ago
@@ -85,7 +85,7 @@ export const useTasks = () => {
       id: crypto.randomUUID(),
       title: input.title,
       description: input.description,
-      tags: input.tags,
+      tagIds: input.tagIds,
       completed: false,
       status: TaskStatus.BACKLOG,
       createdAt: new Date(),

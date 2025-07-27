@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTasks } from '@/hooks/useTasks';
+import { useTags } from '@/hooks/useTags';
 import TasksPage from '@/components/TasksPage';
 import TagsPage from '@/components/TagsPage';
 import { StatisticsPage } from '@/components/StatisticsPage';
@@ -9,6 +10,7 @@ type Page = 'tasks' | 'tags' | 'statistics';
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('tasks');
   const tasksData = useTasks();
+  const { tags } = useTags(tasksData.tasks);
 
   const navigateToTasks = () => setCurrentPage('tasks');
   const navigateToTags = () => setCurrentPage('tags');
@@ -25,7 +27,11 @@ function App() {
       )}
       {currentPage === 'tags' && <TagsPage onBack={navigateToTasks} />}
       {currentPage === 'statistics' && (
-        <StatisticsPage tasks={tasksData.tasks} onBack={navigateToTasks} />
+        <StatisticsPage
+          tasks={tasksData.tasks}
+          tags={tags}
+          onBack={navigateToTasks}
+        />
       )}
     </>
   );
