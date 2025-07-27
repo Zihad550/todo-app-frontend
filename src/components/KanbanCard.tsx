@@ -2,8 +2,15 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Edit, Trash2 } from 'lucide-react';
-import type { Task } from '@/types/task';
+import type { Task, TaskStatus } from '@/types/task';
 import { useState } from 'react';
 import { TaskForm } from './TaskForm';
 
@@ -11,16 +18,22 @@ interface KanbanCardProps {
   task: Task;
   onUpdate: (id: string, updates: Partial<Task>) => void;
   onDelete: (id: string) => void;
+  onMoveTask?: (taskId: string, newStatus: TaskStatus) => void;
   isDragging?: boolean;
   availableTags?: string[];
+  isMobile?: boolean;
+  disableDragAndDrop?: boolean;
 }
 
 export function KanbanCard({
   task,
   onUpdate,
   onDelete,
+  onMoveTask,
   isDragging = false,
   availableTags = [],
+  isMobile = false,
+  disableDragAndDrop = false,
 }: KanbanCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [showActions, setShowActions] = useState(false);
@@ -48,7 +61,7 @@ export function KanbanCard({
     isDragging: isSortableDragging,
   } = useSortable({
     id: task.id,
-    disabled: isEditing,
+    disabled: isEditing || disableDragAndDrop,
   });
 
   const style = {
@@ -72,9 +85,26 @@ export function KanbanCard({
     setIsEditing(false);
   };
 
+  const handleMoveTask = (newStatus: TaskStatus) => {
+    if (onMoveTask && newStatus !== task.status) {
+      onMoveTask(task.id, newStatus);
+    }
+  };
+
+  const statusOptions = [
+    { value: 'backlog', label: 'Backlog' },
+    { value: 'scheduled', label: 'Scheduled' },
+    { value: 'progress', label: 'In Progress' },
+    { value: 'completed', label: 'Completed' },
+  ];
+
   if (isEditing) {
     return (
-      <div className="bg-background border rounded-lg p-4">
+      <div
+        className={`bg-background border rounded-lg ${
+          isMobile ? 'p-4' : 'p-3'
+        }`}
+      >
         <TaskForm
           initialData={{
             title: task.title,
@@ -92,57 +122,100 @@ export function KanbanCard({
 
   return (
     <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className="bg-background border rounded-md p-2 shadow-sm hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing group"
+      ref={disableDragAndDrop ? undefined : setNodeRef}
+      style={disableDragAndDrop ? undefined : style}
+      {...(disableDragAndDrop ? {} : attributes)}
+      {...(disableDragAndDrop ? {} : listeners)}
+      className={`bg-background border rounded-md shadow-sm hover:shadow-md transition-shadow group touch-manipulation ${
+        disableDragAndDrop ? '' : 'cursor-grab active:cursor-grabbing'
+      } ${isMobile ? 'p-4' : 'p-3'}`}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
+      onTouchStart={() => setShowActions(true)}
     >
-      <div className="flex items-start justify-between mb-1">
-        <h4 className="font-medium text-xs leading-tight pr-1">{task.title}</h4>
+      <div
+        className={`flex items-start justify-between ${
+          isMobile ? 'mb-3' : 'mb-2'
+        }`}
+      >
+        <h4
+          className={`font-medium leading-tight pr-2 flex-1 ${
+            isMobile ? 'text-base' : 'text-sm'
+          }`}
+        >
+          {task.title}
+        </h4>
         {showActions && (
-          <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div
+            className={`flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ${
+              isMobile ? 'opacity-100' : ''
+            }`}
+          >
             <Button
               size="sm"
               variant="ghost"
-              className="h-5 w-5 p-0"
+              className={`p-0 ${isMobile ? 'h-8 w-8' : 'h-6 w-6'}`}
               onClick={(e) => {
                 e.stopPropagation();
                 handleEdit();
               }}
             >
-              <Edit className="h-2.5 w-2.5" />
+              <Edit className={isMobile ? 'h-4 w-4' : 'h-3 w-3'} />
             </Button>
             <Button
               size="sm"
               variant="ghost"
-              className="h-5 w-5 p-0 text-destructive hover:text-destructive"
+              className={`p-0 text-destructive hover:text-destructive ${
+                isMobile ? 'h-8 w-8' : 'h-6 w-6'
+              }`}
               onClick={(e) => {
                 e.stopPropagation();
                 handleDelete();
               }}
             >
-              <Trash2 className="h-2.5 w-2.5" />
+              <Trash2 className={isMobile ? 'h-4 w-4' : 'h-3 w-3'} />
             </Button>
           </div>
         )}
       </div>
 
+      {/* Mobile move task section */}
+      {isMobile && disableDragAndDrop && onMoveTask && (
+        <div className="mb-3">
+          <Select value={task.status} onValueChange={handleMoveTask}>
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {statusOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       {task.description && (
-        <p className="text-xs text-muted-foreground mb-1.5 line-clamp-2">
+        <p
+          className={`text-muted-foreground line-clamp-2 ${
+            isMobile ? 'text-sm mb-3' : 'text-xs mb-2'
+          }`}
+        >
           {task.description}
         </p>
       )}
 
       {task.tags.length > 0 && (
-        <div className="flex flex-wrap gap-0.5 mb-1.5">
+        <div className={`flex flex-wrap gap-1 ${isMobile ? 'mb-3' : 'mb-2'}`}>
           {task.tags.map((tag) => (
             <Badge
               key={tag}
               variant="secondary"
-              className="text-xs px-1.5 py-0 h-4"
+              className={`px-2 py-0.5 truncate ${
+                isMobile ? 'text-xs h-5 max-w-28' : 'text-xs h-4 max-w-20'
+              }`}
             >
               {tag}
             </Badge>
@@ -150,21 +223,25 @@ export function KanbanCard({
         </div>
       )}
 
-      <div className="text-xs text-muted-foreground border-t pt-1">
+      <div
+        className={`text-muted-foreground border-t ${
+          isMobile ? 'text-xs pt-2' : 'text-xs pt-1'
+        }`}
+      >
         <div className="flex justify-between items-center">
-          <span className="text-xs">Created:</span>
+          <span className="truncate">Created:</span>
           <span
-            className="text-xs"
+            className="ml-2 flex-shrink-0"
             title={new Date(task.createdAt).toLocaleString()}
           >
             {formatRelativeTime(task.createdAt)}
           </span>
         </div>
         {task.updatedAt.getTime() !== task.createdAt.getTime() && (
-          <div className="flex justify-between items-center mt-0.5">
-            <span className="text-xs">Updated:</span>
+          <div className="flex justify-between items-center mt-1">
+            <span className="truncate">Updated:</span>
             <span
-              className="text-xs"
+              className="ml-2 flex-shrink-0"
               title={new Date(task.updatedAt).toLocaleString()}
             >
               {formatRelativeTime(task.updatedAt)}

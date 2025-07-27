@@ -54,7 +54,7 @@ function TasksPage({ onNavigateToTags }: TasksPageProps) {
 
   const [showForm, setShowForm] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [viewMode, setViewMode] = useState<ViewMode>('kanban');
   const [activeTab, setActiveTab] = useState<'incomplete' | 'completed'>(
     'incomplete'
   );
@@ -137,14 +137,22 @@ function TasksPage({ onNavigateToTags }: TasksPageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div
+        className={`mx-auto py-4 sm:py-6 lg:py-8 ${
+          viewMode === 'kanban'
+            ? 'px-3 sm:px-4 lg:px-6 max-w-screen-2xl'
+            : 'container px-4 max-w-7xl'
+        }`}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <CheckSquare className="h-8 w-8 text-primary" />
+        <div className="flex items-center justify-between mb-4 sm:mb-6 lg:mb-8">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <CheckSquare className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
             <div>
-              <h1 className="text-3xl font-bold">Todo App</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">
+                Todo App
+              </h1>
+              <p className="text-sm sm:text-base text-muted-foreground">
                 {totalCount === 0
                   ? 'No tasks yet'
                   : viewMode === 'list'
@@ -168,7 +176,7 @@ function TasksPage({ onNavigateToTags }: TasksPageProps) {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 mb-6 flex-wrap">
+        <div className="flex gap-2 mb-4 sm:mb-6 flex-wrap">
           <Button
             onClick={() => setShowForm(true)}
             className="flex-1 sm:flex-none"
@@ -202,19 +210,19 @@ function TasksPage({ onNavigateToTags }: TasksPageProps) {
                   onClick={() => setViewMode('list')}
                   variant={viewMode === 'list' ? 'default' : 'ghost'}
                   size="sm"
-                  className="rounded-r-none"
+                  className="rounded-r-none text-xs sm:text-sm"
                 >
-                  <List className="h-4 w-4 mr-2" />
-                  List
+                  <List className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">List</span>
                 </Button>
                 <Button
                   onClick={() => setViewMode('kanban')}
                   variant={viewMode === 'kanban' ? 'default' : 'ghost'}
                   size="sm"
-                  className="rounded-l-none"
+                  className="rounded-l-none text-xs sm:text-sm"
                 >
-                  <LayoutGrid className="h-4 w-4 mr-2" />
-                  Kanban
+                  <LayoutGrid className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Kanban</span>
                 </Button>
               </div>
             </>

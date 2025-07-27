@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -8,11 +8,11 @@ import {
 } from '@dnd-kit/core';
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
 import type { Task, TaskStatus } from '@/types/task';
-import { useState } from 'react';
 
 interface KanbanBoardProps {
   tasks: Task[];
@@ -42,6 +42,68 @@ const columns: { id: TaskStatus; title: string; color: string }[] = [
   },
 ];
 
+interface MobileKanbanViewProps {
+  columns: { id: TaskStatus; title: string; color: string }[];
+  tasksByStatus: Record<TaskStatus, Task[]>;
+  onUpdateTask: (id: string, updates: Partial<Task>) => void;
+  onDeleteTask: (id: string) => void;
+  onMoveTask: (taskId: string, newStatus: TaskStatus) => void;
+  availableTags: string[];
+  collapsedColumns: Set<TaskStatus>;
+  onToggleCollapse: (columnId: TaskStatus) => void;
+}
+
+function MobileKanbanView({
+  columns,
+  tasksByStatus,
+  onUpdateTask,
+  onDeleteTask,
+  onMoveTask,
+  availableTags,
+  collapsedColumns,
+  onToggleCollapse,
+}: MobileKanbanViewProps) {
+  return (
+    <Tabs defaultValue="backlog" className="h-full">
+      <TabsList className="grid w-full grid-cols-4 mb-4">
+        {columns.map((column) => (
+          <TabsTrigger
+            key={column.id}
+            value={column.id}
+            className="text-xs px-2 py-1"
+          >
+            <div className="flex flex-col items-center">
+              <span className="truncate">{column.title}</span>
+              <span className="text-xs text-muted-foreground">
+                {tasksByStatus[column.id]?.length || 0}
+              </span>
+            </div>
+          </TabsTrigger>
+        ))}
+      </TabsList>
+
+      {columns.map((column) => (
+        <TabsContent key={column.id} value={column.id} className="h-full mt-0">
+          <KanbanColumn
+            id={column.id}
+            title={column.title}
+            color={column.color}
+            tasks={tasksByStatus[column.id] || []}
+            onUpdateTask={onUpdateTask}
+            onDeleteTask={onDeleteTask}
+            onMoveTask={onMoveTask}
+            availableTags={availableTags}
+            isCollapsed={collapsedColumns.has(column.id)}
+            onToggleCollapse={() => onToggleCollapse(column.id)}
+            isMobile={true}
+            disableDragAndDrop={true}
+          />
+        </TabsContent>
+      ))}
+    </Tabs>
+  );
+}
+
 export function KanbanBoard({
   tasks,
   onMoveTask,
@@ -51,6 +113,9 @@ export function KanbanBoard({
   availableTags = [],
 }: KanbanBoardProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [collapsedColumns, setCollapsedColumns] = useState<Set<TaskStatus>>(
+    new Set()
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -142,25 +207,56 @@ export function KanbanBoard({
     }
   };
 
+  const toggleColumnCollapse = (columnId: TaskStatus) => {
+    setCollapsedColumns((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(columnId)) {
+        newSet.delete(columnId);
+      } else {
+        newSet.add(columnId);
+      }
+      return newSet;
+    });
+  };
+
   return (
     <DndContext
       sensors={sensors}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 h-full">
-        {columns.map((column) => (
-          <KanbanColumn
-            key={column.id}
-            id={column.id}
-            title={column.title}
-            color={column.color}
-            tasks={tasksByStatus[column.id] || []}
-            onUpdateTask={onUpdateTask}
-            onDeleteTask={onDeleteTask}
-            availableTags={availableTags}
-          />
-        ))}
+      {/* Mobile: Single column view with tabs */}
+      <div className="block md:hidden">
+        <MobileKanbanView
+          columns={columns}
+          tasksByStatus={tasksByStatus}
+          onUpdateTask={onUpdateTask}
+          onDeleteTask={onDeleteTask}
+          onMoveTask={onMoveTask}
+          availableTags={availableTags}
+          collapsedColumns={collapsedColumns}
+          onToggleCollapse={toggleColumnCollapse}
+        />
+      </div>
+
+      {/* Desktop: Multi-column view */}
+      <div className="hidden md:block h-full">
+        <div className="flex gap-3 lg:gap-4 xl:gap-6 h-full">
+          {columns.map((column) => (
+            <KanbanColumn
+              key={column.id}
+              id={column.id}
+              title={column.title}
+              color={column.color}
+              tasks={tasksByStatus[column.id] || []}
+              onUpdateTask={onUpdateTask}
+              onDeleteTask={onDeleteTask}
+              availableTags={availableTags}
+              isCollapsed={collapsedColumns.has(column.id)}
+              onToggleCollapse={() => toggleColumnCollapse(column.id)}
+            />
+          ))}
+        </div>
       </div>
 
       <DragOverlay>
