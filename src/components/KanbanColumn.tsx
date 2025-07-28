@@ -17,7 +17,10 @@ interface KanbanColumnProps {
   onUpdateTask: (id: string, updates: Partial<Task>) => void;
   onDeleteTask: (id: string) => void;
   onMoveTask?: (taskId: string, newStatus: TaskStatus) => void;
+  onAddSubtask: (taskId: string, title: string, tag?: string) => Promise<void>;
+  onToggleSubtask: (taskId: string, subtaskId: string) => Promise<void>;
   availableTags?: TagWithMetadata[];
+  onCreateTag?: (name: string) => Promise<TagWithMetadata>;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   isMobile?: boolean;
@@ -32,7 +35,10 @@ export function KanbanColumn({
   onUpdateTask,
   onDeleteTask,
   onMoveTask,
+  onAddSubtask,
+  onToggleSubtask,
   availableTags = [],
+  onCreateTag,
   isCollapsed = false,
   onToggleCollapse,
   isMobile = false,
@@ -89,7 +95,10 @@ export function KanbanColumn({
                     onUpdate={onUpdateTask}
                     onDelete={onDeleteTask}
                     onMoveTask={onMoveTask}
+                    onAddSubtask={onAddSubtask}
+                    onToggleSubtask={onToggleSubtask}
                     availableTags={availableTags}
+                    onCreateTag={onCreateTag}
                     isMobile={true}
                     disableDragAndDrop={true}
                   />
@@ -107,7 +116,10 @@ export function KanbanColumn({
                       task={task}
                       onUpdate={onUpdateTask}
                       onDelete={onDeleteTask}
+                      onAddSubtask={onAddSubtask}
+                      onToggleSubtask={onToggleSubtask}
                       availableTags={availableTags}
+                      onCreateTag={onCreateTag}
                       isMobile={true}
                     />
                   ))}
@@ -188,7 +200,10 @@ export function KanbanColumn({
                   task={task}
                   onUpdate={onUpdateTask}
                   onDelete={onDeleteTask}
+                  onAddSubtask={onAddSubtask}
+                  onToggleSubtask={onToggleSubtask}
                   availableTags={availableTags}
+                  onCreateTag={onCreateTag}
                 />
               ))}
             </div>

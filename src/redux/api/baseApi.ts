@@ -5,8 +5,8 @@ import {
   type BaseQueryFn,
   type DefinitionType,
   type FetchArgs,
-} from "@reduxjs/toolkit/query/react";
-import { TagTypes } from "../tag.types";
+} from '@reduxjs/toolkit/query/react';
+import { TagTypes } from '../tag.types';
 
 const baseQuery = fetchBaseQuery({
   baseUrl: import.meta.env.VITE_APP_BACKEND_API_URL,
@@ -26,28 +26,26 @@ const testBaseQuery: BaseQueryFn<
   FetchArgs,
   BaseQueryApi,
   DefinitionType
-> = async (args, api, extraOptions): Promise<any> => {
+> = async (args, api, extraOptions) => {
   const results = await baseQuery(args, api, extraOptions);
 
-  if (Array.isArray(results.data?.data)) {
-    const data = results?.data?.data;
-    const formatted = data?.map((item) => ({
-      ...item,
-      createdAt: new Date(item.createdAt),
-      updatedAt: new Date(item.updatedAt),
-    }));
-    console.log("formatted", formatted);
+  // if (Array.isArray(results.data?.data)) {
+  //   const data = results?.data?.data;
+  //   const formatted = data?.map((item: unknown) => ({
+  //     ...item,
+  //     createdAt: new Date(item.createdAt),
+  //     updatedAt: new Date(item.updatedAt),
+  //   }));
 
-    const res = {
-      ...results,
-      data: {
-        ...results?.data,
-        data: formatted,
-      },
-    };
-    console.log("res", res);
-    return res;
-  }
+  //   const res = {
+  //     ...results,
+  //     data: {
+  //       ...results?.data,
+  //       data: formatted,
+  //     },
+  //   };
+  //   return res;
+  // }
   return results;
 };
 
@@ -97,7 +95,7 @@ const testBaseQuery: BaseQueryFn<
 // };
 
 export const baseApi = createApi({
-  reducerPath: "baseApi",
+  reducerPath: 'baseApi',
   // baseQuery: baseQueryWithRefreshToken,
   baseQuery: testBaseQuery,
   tagTypes: Object.values(TagTypes),

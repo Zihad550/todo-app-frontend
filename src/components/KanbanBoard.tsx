@@ -1,20 +1,20 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import {
   DndContext,
   DragOverlay,
   PointerSensor,
   useSensor,
   useSensors,
-} from "@dnd-kit/core";
-import { arrayMove } from "@dnd-kit/sortable";
-import { useMemo, useState } from "react";
+} from '@dnd-kit/core';
+import { arrayMove } from '@dnd-kit/sortable';
+import { useMemo, useState } from 'react';
 
-import type { TagWithMetadata } from "@/hooks/useTags";
-import type { Task } from "@/types/task";
-import { TaskStatus } from "@/types/task";
-import { KanbanCard } from "./KanbanCard";
-import { KanbanColumn } from "./KanbanColumn";
+import type { TagWithMetadata } from '@/hooks/useTags';
+import type { Task } from '@/types/task';
+import { TaskStatus } from '@/types/task';
+import { KanbanCard } from './KanbanCard';
+import { KanbanColumn } from './KanbanColumn';
 
 interface KanbanBoardProps {
   tasks: Task[];
@@ -22,29 +22,32 @@ interface KanbanBoardProps {
   onReorderTasks: (tasks: Task[]) => void;
   onUpdateTask: (id: string, updates: Partial<Task>) => void;
   onDeleteTask: (id: string) => void;
+  onAddSubtask: (taskId: string, title: string, tag?: string) => Promise<void>;
+  onToggleSubtask: (taskId: string, subtaskId: string) => Promise<void>;
   availableTags?: TagWithMetadata[];
+  onCreateTag?: (name: string) => Promise<TagWithMetadata>;
 }
 
 const columns: { id: TaskStatus; title: string; color: string }[] = [
   {
     id: TaskStatus.BACKLOG,
-    title: "Backlog",
-    color: "bg-gray-100 dark:bg-gray-800",
+    title: 'Backlog',
+    color: 'bg-gray-100 dark:bg-gray-800',
   },
   {
     id: TaskStatus.SCHEDULED,
-    title: "Scheduled",
-    color: "bg-blue-100 dark:bg-blue-900/20",
+    title: 'Scheduled',
+    color: 'bg-blue-100 dark:bg-blue-900/20',
   },
   {
     id: TaskStatus.PROGRESS,
-    title: "In Progress",
-    color: "bg-yellow-100 dark:bg-yellow-900/20",
+    title: 'In Progress',
+    color: 'bg-yellow-100 dark:bg-yellow-900/20',
   },
   {
     id: TaskStatus.COMPLETED,
-    title: "Completed",
-    color: "bg-green-100 dark:bg-green-900/20",
+    title: 'Completed',
+    color: 'bg-green-100 dark:bg-green-900/20',
   },
 ];
 
@@ -54,7 +57,10 @@ interface MobileKanbanViewProps {
   onUpdateTask: (id: string, updates: Partial<Task>) => void;
   onDeleteTask: (id: string) => void;
   onMoveTask: (taskId: string, newStatus: TaskStatus) => void;
+  onAddSubtask: (taskId: string, title: string, tag?: string) => Promise<void>;
+  onToggleSubtask: (taskId: string, subtaskId: string) => Promise<void>;
   availableTags: TagWithMetadata[];
+  onCreateTag?: (name: string) => Promise<TagWithMetadata>;
   collapsedColumns: Set<TaskStatus>;
   onToggleCollapse: (columnId: TaskStatus) => void;
 }
@@ -65,7 +71,10 @@ function MobileKanbanView({
   onUpdateTask,
   onDeleteTask,
   onMoveTask,
+  onAddSubtask,
+  onToggleSubtask,
   availableTags,
+  onCreateTag,
   collapsedColumns,
   onToggleCollapse,
 }: MobileKanbanViewProps) {
@@ -98,7 +107,10 @@ function MobileKanbanView({
             onUpdateTask={onUpdateTask}
             onDeleteTask={onDeleteTask}
             onMoveTask={onMoveTask}
+            onAddSubtask={onAddSubtask}
+            onToggleSubtask={onToggleSubtask}
             availableTags={availableTags}
+            onCreateTag={onCreateTag}
             isCollapsed={collapsedColumns.has(column.id)}
             onToggleCollapse={() => onToggleCollapse(column.id)}
             isMobile={true}
@@ -116,11 +128,14 @@ export function KanbanBoard({
   onReorderTasks,
   onUpdateTask,
   onDeleteTask,
+  onAddSubtask,
+  onToggleSubtask,
   availableTags = [],
+  onCreateTag,
 }: KanbanBoardProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [collapsedColumns, setCollapsedColumns] = useState<Set<TaskStatus>>(
-    new Set(),
+    new Set()
   );
 
   const sensors = useSensors(
@@ -128,20 +143,17 @@ export function KanbanBoard({
       activationConstraint: {
         distance: 8,
       },
-    }),
+    })
   );
 
   const tasksByStatus = useMemo(() => {
-    return tasks.reduce(
-      (acc, task) => {
-        if (!acc[task.status]) {
-          acc[task.status] = [];
-        }
-        acc[task.status].push(task);
-        return acc;
-      },
-      {} as Record<TaskStatus, Task[]>,
-    );
+    return tasks.reduce((acc, task) => {
+      if (!acc[task.status]) {
+        acc[task.status] = [];
+      }
+      acc[task.status].push(task);
+      return acc;
+    }, {} as Record<TaskStatus, Task[]>);
   }, [tasks]);
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -184,9 +196,6 @@ export function KanbanBoard({
 
     // If moving to a different column
     if (activeTask.status !== targetStatus) {
-      console.log(
-        `Moving task "${activeTask.title}" from ${activeTask.status} to ${targetStatus}`,
-      );
       onMoveTask(activeId, targetStatus);
       return;
     }
@@ -201,7 +210,7 @@ export function KanbanBoard({
         const reorderedColumnTasks = arrayMove(
           columnTasks,
           activeIndex,
-          overIndex,
+          overIndex
         );
 
         // Create new tasks array with reordered tasks in this column
@@ -209,7 +218,7 @@ export function KanbanBoard({
         const newTasks = [...otherTasks, ...reorderedColumnTasks];
 
         console.log(
-          `Reordering task "${activeTask.title}" within ${targetStatus} column`,
+          `Reordering task "${activeTask.title}" within ${targetStatus} column`
         );
         onReorderTasks(newTasks);
       }
@@ -242,7 +251,10 @@ export function KanbanBoard({
           onUpdateTask={onUpdateTask}
           onDeleteTask={onDeleteTask}
           onMoveTask={onMoveTask}
+          onAddSubtask={onAddSubtask}
+          onToggleSubtask={onToggleSubtask}
           availableTags={availableTags}
+          onCreateTag={onCreateTag}
           collapsedColumns={collapsedColumns}
           onToggleCollapse={toggleColumnCollapse}
         />
@@ -260,7 +272,10 @@ export function KanbanBoard({
               tasks={tasksByStatus[column.id] || []}
               onUpdateTask={onUpdateTask}
               onDeleteTask={onDeleteTask}
+              onAddSubtask={onAddSubtask}
+              onToggleSubtask={onToggleSubtask}
               availableTags={availableTags}
+              onCreateTag={onCreateTag}
               isCollapsed={collapsedColumns.has(column.id)}
               onToggleCollapse={() => toggleColumnCollapse(column.id)}
             />
@@ -274,6 +289,8 @@ export function KanbanBoard({
             task={activeTask}
             onUpdate={() => {}}
             onDelete={() => {}}
+            onAddSubtask={async () => {}}
+            onToggleSubtask={async () => {}}
             isDragging
           />
         ) : null}

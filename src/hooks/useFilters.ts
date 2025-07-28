@@ -1,7 +1,7 @@
-import type { FilterType, SortType } from "@/components/TaskFilters";
-import type { TagWithMetadata } from "@/hooks/useTags";
-import type { Task } from "@/types/task";
-import { useMemo, useState } from "react";
+import type { FilterType, SortType } from '@/components/TaskFilters';
+import type { TagWithMetadata } from '@/hooks/useTags';
+import type { Task } from '@/types/task';
+import { useMemo, useState } from 'react';
 
 interface UseFiltersOptions {
   initialFilter?: FilterType;
@@ -13,12 +13,12 @@ interface UseFiltersOptions {
 export const useFilters = (
   tasks: Task[],
   tags: TagWithMetadata[],
-  options: UseFiltersOptions = {},
+  options: UseFiltersOptions = {}
 ) => {
   const {
-    initialFilter = "all",
-    initialSort = "newest",
-    initialSearchTerm = "",
+    initialFilter = 'all',
+    initialSort = 'newest',
+    initialSearchTerm = '',
     initialSelectedTags = [],
   } = options;
 
@@ -51,14 +51,14 @@ export const useFilters = (
           task.tags.some((tagId) => {
             const tag = tags.find((t) => t.id === tagId);
             return tag?.name.toLowerCase().includes(searchTerm.toLowerCase());
-          }),
+          })
       );
     }
 
     // Filter by status
-    if (filter === "active") {
+    if (filter === 'active') {
       filtered = filtered.filter((task) => !task.completed);
-    } else if (filter === "completed") {
+    } else if (filter === 'completed') {
       filtered = filtered.filter((task) => task.completed);
     }
 
@@ -68,19 +68,22 @@ export const useFilters = (
         selectedTags.some((selectedTagName) => {
           const selectedTag = tags.find((t) => t.name === selectedTagName);
           return selectedTag && task.tags.includes(selectedTag.id);
-        }),
+        })
       );
     }
 
     // Sort tasks
     const sorted = [...filtered].sort((a, b) => {
-      console.log(a, b);
       switch (sort) {
-        case "newest":
-          return b.createdAt.getTime() - a.createdAt.getTime();
-        case "oldest":
-          return a.createdAt.getTime() - b.createdAt.getTime();
-        case "title":
+        case 'newest':
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        case 'oldest':
+          return (
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
+        case 'title':
           return a.title.localeCompare(b.title);
         default:
           return 0;
@@ -92,22 +95,22 @@ export const useFilters = (
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     );
   };
 
   const clearAllFilters = () => {
-    setSearchTerm("");
-    setFilter("all");
-    setSort("newest");
+    setSearchTerm('');
+    setFilter('all');
+    setSort('newest');
     setSelectedTags([]);
   };
 
   const hasActiveFilters =
-    searchTerm.trim() !== "" ||
-    filter !== "all" ||
+    searchTerm.trim() !== '' ||
+    filter !== 'all' ||
     selectedTags.length > 0 ||
-    sort !== "newest";
+    sort !== 'newest';
 
   return {
     // Filter state

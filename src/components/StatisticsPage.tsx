@@ -1,11 +1,11 @@
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { useTags } from "@/hooks/useTags";
-import { useTasks } from "@/hooks/useTasks";
-import { TaskStatus } from "@/types/task";
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { useTags } from '@/hooks/useTags';
+import { useTasks } from '@/hooks/useTasks';
+import { TaskStatus } from '@/types/task';
 import {
   ArrowLeft,
   BarChart3,
@@ -15,8 +15,8 @@ import {
   Tag,
   Target,
   TrendingUp,
-} from "lucide-react";
-import { useMemo } from "react";
+} from 'lucide-react';
+import { useMemo } from 'react';
 
 interface StatisticsPageProps {
   onBack: () => void;
@@ -58,7 +58,7 @@ export function StatisticsPage({ onBack }: StatisticsPageProps) {
         acc[task.status]++;
         return acc;
       },
-      { backlog: 0, scheduled: 0, progress: 0, completed: 0 },
+      { backlog: 0, scheduled: 0, progress: 0, completed: 0 }
     );
 
     // Tag statistics
@@ -106,17 +106,20 @@ export function StatisticsPage({ onBack }: StatisticsPageProps) {
         }
         return acc;
       },
-      { today: 0, thisWeek: 0, thisMonth: 0, older: 0 },
+      { today: 0, thisWeek: 0, thisMonth: 0, older: 0 }
     );
 
     // Recent activity (tasks updated in last 7 days)
     const recentActivity = tasks.filter(
-      (task) => new Date(task.updatedAt) >= weekAgo,
+      (task) => new Date(task.updatedAt) >= weekAgo
     ).length;
 
     // Average completion time (for completed tasks)
     const completedTasksWithTime = tasks.filter(
-      (task) => task.completed && task.updatedAt !== task.createdAt,
+      (task) =>
+        task.completed &&
+        new Date(task.updatedAt).getTime() !==
+          new Date(task.createdAt).getTime()
     );
     const avgCompletionTime =
       completedTasksWithTime.length > 0
@@ -148,30 +151,30 @@ export function StatisticsPage({ onBack }: StatisticsPageProps) {
   const getStatusColor = (status: TaskStatus): string => {
     switch (status) {
       case TaskStatus.BACKLOG:
-        return "bg-gray-500";
+        return 'bg-gray-500';
       case TaskStatus.SCHEDULED:
-        return "bg-blue-500";
+        return 'bg-blue-500';
       case TaskStatus.PROGRESS:
-        return "bg-yellow-500";
+        return 'bg-yellow-500';
       case TaskStatus.COMPLETED:
-        return "bg-green-500";
+        return 'bg-green-500';
       default:
-        return "bg-gray-500";
+        return 'bg-gray-500';
     }
   };
 
   const getStatusLabel = (status: TaskStatus): string => {
     switch (status) {
       case TaskStatus.BACKLOG:
-        return "Backlog";
+        return 'Backlog';
       case TaskStatus.SCHEDULED:
-        return "Scheduled";
+        return 'Scheduled';
       case TaskStatus.PROGRESS:
-        return "In Progress";
+        return 'In Progress';
       case TaskStatus.COMPLETED:
-        return "Completed";
+        return 'Completed';
       default:
-        return "Unknown";
+        return 'Unknown';
     }
   };
 
@@ -274,7 +277,7 @@ export function StatisticsPage({ onBack }: StatisticsPageProps) {
                   <div className="text-2xl font-bold">
                     {stats.avgCompletionDays > 0
                       ? `${stats.avgCompletionDays}d`
-                      : "N/A"}
+                      : 'N/A'}
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Average days to complete
@@ -327,7 +330,7 @@ export function StatisticsPage({ onBack }: StatisticsPageProps) {
                           <div className="flex items-center gap-2">
                             <div
                               className={`w-3 h-3 rounded-full ${getStatusColor(
-                                status as TaskStatus,
+                                status as TaskStatus
                               )}`}
                             />
                             <span className="text-sm font-medium">
@@ -345,7 +348,7 @@ export function StatisticsPage({ onBack }: StatisticsPageProps) {
                             </span>
                           </div>
                         </div>
-                      ),
+                      )
                     )}
                   </div>
                 </CardContent>

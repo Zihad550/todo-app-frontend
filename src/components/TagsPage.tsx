@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useTags, type CreateTagInput } from "@/hooks/useTags";
+import { useTasks } from "@/hooks/useTasks";
 import { cn } from "@/lib/utils";
 import {
   ArrowLeft,
@@ -109,6 +110,7 @@ interface TagsPageProps {
 }
 
 function TagsPage({ onBack }: TagsPageProps) {
+  const { tasks } = useTasks();
   const {
     tags,
     createTag,
@@ -119,7 +121,6 @@ function TagsPage({ onBack }: TagsPageProps) {
     getMostUsedTags,
     defaultColors,
   } = useTags(tasks);
-  const { tasks } = useTasks();
 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingTag, setEditingTag] = useState<{
@@ -393,4 +394,4 @@ function TagsPage({ onBack }: TagsPageProps) {
   );
 }
 
-export default TagsPage;
+export { TagsPage };

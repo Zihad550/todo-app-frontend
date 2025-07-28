@@ -24,6 +24,7 @@ interface TaskListProps {
   onToggle: (id: string) => void;
   onReorder?: (tasks: Task[]) => void;
   availableTags?: TagWithMetadata[];
+  onCreateTag?: (name: string) => Promise<TagWithMetadata>;
 }
 
 export const TaskList = ({
@@ -33,6 +34,7 @@ export const TaskList = ({
   onToggle,
   onReorder,
   availableTags = [],
+  onCreateTag,
 }: TaskListProps) => {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [localTasks, setLocalTasks] = useState<Task[]>(tasks);
@@ -53,7 +55,6 @@ export const TaskList = ({
   const handleDragStart = (event: DragStartEvent) => {
     const task = localTasks.find((t) => t.id === event.active.id);
     setActiveTask(task || null);
-    console.log('Drag started:', task?.title);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -68,13 +69,9 @@ export const TaskList = ({
     const activeId = active.id as string;
     const overId = over.id as string;
 
-    console.log('Drag end:', { activeId, overId });
-
     if (activeId !== overId) {
       const activeIndex = localTasks.findIndex((task) => task.id === activeId);
       const overIndex = localTasks.findIndex((task) => task.id === overId);
-
-      console.log('Indices:', { activeIndex, overIndex });
 
       if (activeIndex !== -1 && overIndex !== -1) {
         const reorderedTasks = arrayMove(localTasks, activeIndex, overIndex);
@@ -88,7 +85,6 @@ export const TaskList = ({
 
         // Call parent reorder function
         if (onReorder) {
-          console.log('Calling onReorder');
           onReorder(reorderedTasks);
         }
       }
@@ -116,6 +112,7 @@ export const TaskList = ({
             onDelete={onDelete}
             onToggle={onToggle}
             availableTags={availableTags}
+            onCreateTag={onCreateTag}
           />
         ))}
       </div>
@@ -142,6 +139,7 @@ export const TaskList = ({
               onDelete={onDelete}
               onToggle={onToggle}
               availableTags={availableTags}
+              onCreateTag={onCreateTag}
               isDraggable={true}
             />
           ))}
@@ -156,6 +154,7 @@ export const TaskList = ({
             onDelete={() => {}}
             onToggle={() => {}}
             availableTags={availableTags}
+            onCreateTag={onCreateTag}
             isDragging={true}
           />
         ) : null}

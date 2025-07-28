@@ -1,29 +1,29 @@
-// import { StatisticsPage } from "@/components/StatisticsPage";
-// import TagsPage from "@/components/TagsPage";
-import TasksPage from "@/components/TasksPage";
-import { useState } from "react";
+import { StatisticsPage } from '@/components/StatisticsPage';
+import { TagsPage } from '@/components/TagsPage';
+import { TasksPage } from '@/components/TasksPage';
+import { useState } from 'react';
 
-type Page = "tasks" | "tags" | "statistics";
+type Page = 'tasks' | 'tags' | 'statistics';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<Page>("tasks");
+  const [currentPage, setCurrentPage] = useState<Page>('tasks');
 
-  const navigateToTasks = () => setCurrentPage("tasks");
-  const navigateToTags = () => setCurrentPage("tags");
-  const navigateToStatistics = () => setCurrentPage("statistics");
+  const navigateToTasks = () => setCurrentPage('tasks');
+  const navigateToTags = () => setCurrentPage('tags');
+  const navigateToStatistics = () => setCurrentPage('statistics');
 
   return (
     <>
-      {currentPage === "tasks" && (
+      {currentPage === 'tasks' && (
         <TasksPage
           onNavigateToTags={navigateToTags}
           onNavigateToStatistics={navigateToStatistics}
         />
       )}
-      {/* {currentPage === "tags" && <TagsPage onBack={navigateToTasks} />}
-      {currentPage === "statistics" && (
+      {currentPage === 'tags' && <TagsPage onBack={navigateToTasks} />}
+      {currentPage === 'statistics' && (
         <StatisticsPage onBack={navigateToTasks} />
-      )} */}
+      )}
     </>
   );
 }

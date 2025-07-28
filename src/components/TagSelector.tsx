@@ -23,6 +23,7 @@ interface TagSelectorProps {
   selectedTags: string[];
   availableTags: TagWithMetadata[];
   onTagsChange: (tags: string[]) => void;
+  onCreateTag?: (name: string) => Promise<TagWithMetadata>;
   placeholder?: string;
 }
 
@@ -30,6 +31,7 @@ export const TagSelector = ({
   selectedTags,
   availableTags,
   onTagsChange,
+  onCreateTag,
   placeholder = 'Select or create tags...',
 }: TagSelectorProps) => {
   const [open, setOpen] = useState(false);
@@ -48,7 +50,7 @@ export const TagSelector = ({
     }
   };
 
-  const addTagByName = (tagName: string) => {
+  const addTagByName = async (tagName: string) => {
     const trimmedTagName = tagName.trim();
     if (!trimmedTagName) return;
 
@@ -61,10 +63,20 @@ export const TagSelector = ({
       return;
     }
 
-    // Create new tag (this would need to be handled by parent component)
-    // For now, we'll create a temporary ID - this should be handled by the parent
-    const newTagId = crypto.randomUUID();
-    onTagsChange([...selectedTags, newTagId]);
+    // Create new tag if onCreateTag is provided
+    if (onCreateTag) {
+      try {
+        const newTag = await onCreateTag(trimmedTagName);
+        addTagById(newTag.id);
+      } catch (error) {
+        // Error handling is done in the createTag function (toast notifications)
+        console.error('Failed to create tag:', error);
+      }
+    } else {
+      // Fallback: create temporary ID if no onCreateTag provided
+      const newTagId = crypto.randomUUID();
+      onTagsChange([...selectedTags, newTagId]);
+    }
   };
 
   const removeTagById = (tagId: string) => {
@@ -76,17 +88,17 @@ export const TagSelector = ({
     setInputValue('');
   };
 
-  const handleCreateTag = () => {
+  const handleCreateTag = async () => {
     if (inputValue.trim()) {
-      addTagByName(inputValue.trim());
+      await addTagByName(inputValue.trim());
       setInputValue('');
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = async (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && inputValue.trim()) {
       e.preventDefault();
-      handleCreateTag();
+      await handleCreateTag();
     }
   };
 
