@@ -1,20 +1,21 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import {
   DndContext,
   DragOverlay,
   PointerSensor,
   useSensor,
   useSensors,
-} from '@dnd-kit/core';
-import { arrayMove } from '@dnd-kit/sortable';
-import { useMemo, useState } from 'react';
+} from "@dnd-kit/core";
+import { arrayMove } from "@dnd-kit/sortable";
+import { useMemo, useState } from "react";
 
-import type { TagWithMetadata } from '@/hooks/useTags';
-import type { Task } from '@/types/task';
-import { TaskStatus } from '@/types/task';
-import { KanbanCard } from './KanbanCard';
-import { KanbanColumn } from './KanbanColumn';
+import type { TagWithMetadata } from "@/hooks/useTags";
+import { useUpdateTaskMutation } from "@/redux/features/taskApi";
+import type { Task } from "@/types/task";
+import { TaskStatus } from "@/types/task";
+import { KanbanCard } from "./KanbanCard";
+import { KanbanColumn } from "./KanbanColumn";
 
 interface KanbanBoardProps {
   tasks: Task[];
@@ -31,23 +32,23 @@ interface KanbanBoardProps {
 const columns: { id: TaskStatus; title: string; color: string }[] = [
   {
     id: TaskStatus.BACKLOG,
-    title: 'Backlog',
-    color: 'bg-gray-100 dark:bg-gray-800',
+    title: "Backlog",
+    color: "bg-gray-100 dark:bg-gray-800",
   },
   {
     id: TaskStatus.SCHEDULED,
-    title: 'Scheduled',
-    color: 'bg-blue-100 dark:bg-blue-900/20',
+    title: "Scheduled",
+    color: "bg-blue-100 dark:bg-blue-900/20",
   },
   {
     id: TaskStatus.PROGRESS,
-    title: 'In Progress',
-    color: 'bg-yellow-100 dark:bg-yellow-900/20',
+    title: "In Progress",
+    color: "bg-yellow-100 dark:bg-yellow-900/20",
   },
   {
     id: TaskStatus.COMPLETED,
-    title: 'Completed',
-    color: 'bg-green-100 dark:bg-green-900/20',
+    title: "Completed",
+    color: "bg-green-100 dark:bg-green-900/20",
   },
 ];
 
@@ -133,9 +134,10 @@ export function KanbanBoard({
   availableTags = [],
   onCreateTag,
 }: KanbanBoardProps) {
+  const [updateTaskMutation] = useUpdateTaskMutation();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [collapsedColumns, setCollapsedColumns] = useState<Set<TaskStatus>>(
-    new Set()
+    new Set(),
   );
 
   const sensors = useSensors(
@@ -143,17 +145,20 @@ export function KanbanBoard({
       activationConstraint: {
         distance: 8,
       },
-    })
+    }),
   );
 
   const tasksByStatus = useMemo(() => {
-    return tasks.reduce((acc, task) => {
-      if (!acc[task.status]) {
-        acc[task.status] = [];
-      }
-      acc[task.status].push(task);
-      return acc;
-    }, {} as Record<TaskStatus, Task[]>);
+    return tasks.reduce(
+      (acc, task) => {
+        if (!acc[task.status]) {
+          acc[task.status] = [];
+        }
+        acc[task.status].push(task);
+        return acc;
+      },
+      {} as Record<TaskStatus, Task[]>,
+    );
   }, [tasks]);
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -161,7 +166,7 @@ export function KanbanBoard({
     setActiveTask(task || null);
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveTask(null);
 
@@ -207,19 +212,25 @@ export function KanbanBoard({
       const overIndex = columnTasks.findIndex((t) => t.id === overId);
 
       if (activeIndex !== overIndex) {
-        const reorderedColumnTasks = arrayMove(
+        let reorderedColumnTasks = arrayMove(
           columnTasks,
           activeIndex,
-          overIndex
+          overIndex,
         );
+
+        reorderedColumnTasks = reorderedColumnTasks.map((item, index) => ({
+          ...item,
+          position: index,
+        }));
+
+        for (const task of reorderedColumnTasks) {
+          await updateTaskMutation({ id: task.id, data: task });
+        }
 
         // Create new tasks array with reordered tasks in this column
         const otherTasks = tasks.filter((t) => t.status !== targetStatus);
         const newTasks = [...otherTasks, ...reorderedColumnTasks];
 
-        console.log(
-          `Reordering task "${activeTask.title}" within ${targetStatus} column`
-        );
         onReorderTasks(newTasks);
       }
     }
