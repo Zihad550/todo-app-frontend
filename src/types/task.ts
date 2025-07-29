@@ -25,6 +25,7 @@ export interface Task {
   tags: string[];
   completed: boolean;
   status: TaskStatus;
+  position: number; // Position within the status column (0-based index)
   subtasks: Subtask[];
   createdAt: Date;
   updatedAt: Date;
@@ -45,6 +46,7 @@ export interface CreateTaskInput {
   title: string;
   description: string;
   tags: string[];
+  position?: number;
   subtasks?: CreateSubtaskInput[];
 }
 
@@ -54,5 +56,6 @@ export interface UpdateTaskInput {
   tags?: string[];
   completed?: boolean;
   status?: TaskStatus;
+  position?: number;
   subtasks?: Subtask[];
 }

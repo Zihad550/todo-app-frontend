@@ -1,6 +1,6 @@
-import { baseApi } from '../api/baseApi';
-import { TagTypes } from '../tag.types';
-import type { CreateTaskInput, UpdateTaskInput, Task } from '@/types/task';
+import type { CreateTaskInput, Task, UpdateTaskInput } from "@/types/task";
+import { baseApi } from "../api/baseApi";
+import { TagTypes } from "../tag.types";
 
 interface UpdateTaskPayload {
   id: string;
@@ -20,31 +20,31 @@ const taskApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
     createTask: build.mutation<ApiResponse<Task>, CreateTaskInput>({
       query: (data) => ({
-        url: '/tasks',
-        method: 'POST',
+        url: "/task-kanban/tasks",
+        method: "POST",
         body: data,
       }),
       invalidatesTags: [TagTypes.Task],
     }),
     updateTask: build.mutation<ApiResponse<Task>, UpdateTaskPayload>({
       query: ({ id, data }) => ({
-        url: `/tasks/${id}`,
-        method: 'PATCH',
+        url: `/task-kanban/tasks/${id}`,
+        method: "PATCH",
         body: data,
       }),
       invalidatesTags: [TagTypes.Task],
     }),
     deleteTask: build.mutation<ApiResponse<{ id: string }>, DeleteTaskPayload>({
       query: ({ id }) => ({
-        url: `/tasks/${id}`,
-        method: 'DELETE',
+        url: `/task-kanban/tasks/${id}`,
+        method: "DELETE",
       }),
       invalidatesTags: [TagTypes.Task],
     }),
     getAllTasks: build.query<ApiResponse<Task[]>, void>({
       query: () => ({
-        url: '/tasks',
-        method: 'GET',
+        url: "/task-kanban/kanban",
+        method: "GET",
       }),
       providesTags: [TagTypes.Task],
     }),

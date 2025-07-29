@@ -7,9 +7,8 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Generate a unique identifier for a subtask using title + createdAt timestamp
- * This ensures uniqueness while being deterministic for the same subtask
- * Handles cases where createdAt might be a string or undefined
+ * Generate a unique identifier for a subtask using its title and creation timestamp.
+ * This ensures uniqueness while being deterministic for the same subtask.
  */
 export function getSubtaskId(subtask: Subtask): string {
   // Ensure we have a valid subtask object
@@ -19,11 +18,11 @@ export function getSubtaskId(subtask: Subtask): string {
   }
 
   // Ensure we have a title
-  const title = subtask.title || 'untitled';
-
-  // Handle cases where createdAt might be a string (from API) or undefined
+  const title = (subtask.title || 'untitled').trim();
+  
+  // Get the timestamp from createdAt
   let timestamp: number;
-
+  
   try {
     if (!subtask.createdAt) {
       // Fallback to current timestamp if createdAt is missing
@@ -43,6 +42,7 @@ export function getSubtaskId(subtask: Subtask): string {
     console.warn('Error processing createdAt in getSubtaskId:', error);
     timestamp = Date.now();
   }
-
+  
+  // Combine title and timestamp for a unique identifier
   return `${title}-${timestamp}`;
 }
