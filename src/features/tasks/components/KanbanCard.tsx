@@ -248,9 +248,7 @@ export function KanbanCard({
                       subtask.completed ? 'line-through opacity-60' : ''
                     }`}
                   >
-                    {subtask.title.length > 15
-                      ? `${subtask.title.slice(0, 15)}...`
-                      : subtask.title}
+                    {subtask.title}
                   </div>
                 ))}
                 {task.subtasks.length > 3 && (

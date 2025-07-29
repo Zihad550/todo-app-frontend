@@ -73,7 +73,7 @@ export function SubtaskListCompact({
           />
           <span
             className={cn(
-              'flex-1 truncate',
+              'flex-1',
               isMobile ? 'text-xs' : 'text-xs',
               subtask.completed && 'line-through'
             )}
