@@ -1,10 +1,10 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { SubtaskItem } from '@/components/SubtaskItem';
-import { useSubtasks } from '@/hooks/useSubtasks';
+import { SubtaskItem } from './SubtaskItem';
+import { useSubtasks } from '../hooks/useSubtasks';
 import type { Subtask } from '@/types/task';
-import type { TagWithMetadata } from '@/hooks/useTags';
-import { TagSelector } from '@/components/TagSelector';
+import type { TagWithMetadata } from '@/features/tags';
+import { TagSelector } from '@/features/tags';
 import { cn, getSubtaskId } from '@/lib/utils';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';

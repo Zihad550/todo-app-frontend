@@ -1,8 +1,8 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { useTags } from '@/hooks/useTags';
-import { useTasks } from '@/hooks/useTasks';
+import { useTasks } from '@/features/tasks';
+import { useTags } from '@/features/tags';
 import { TaskStatus } from '@/types/task';
 import {
   BarChart3,
@@ -139,7 +139,7 @@ export function StatisticsPage() {
       recentActivity,
       avgCompletionDays,
     };
-  }, [tags, tasks]);
+  }, [tasks]);
 
   const getStatusColor = (status: TaskStatus): string => {
     switch (status) {

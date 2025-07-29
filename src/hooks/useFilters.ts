@@ -1,5 +1,8 @@
-import type { FilterType, SortType } from '@/components/TaskFilters';
-import type { TagWithMetadata } from '@/hooks/useTags';
+import type {
+  FilterType,
+  SortType,
+} from '@/features/tasks/components/TaskFilters';
+import type { TagWithMetadata } from '@/features/tags';
 import type { Task } from '@/types/task';
 import { useMemo, useState } from 'react';
 

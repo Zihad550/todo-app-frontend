@@ -7,8 +7,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { useTags, type CreateTagInput } from '@/hooks/useTags';
-import { useTasks } from '@/hooks/useTasks';
+import { useTasks } from '@/features/tasks';
+import { useTags, type CreateTagInput } from '@/features/tags';
 import { cn } from '@/lib/utils';
 import {
   Edit2,

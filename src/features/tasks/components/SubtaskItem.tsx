@@ -1,10 +1,10 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { useSubtasks } from '@/hooks/useSubtasks';
+import { useSubtasks } from '../hooks/useSubtasks';
 import type { Subtask } from '@/types/task';
-import type { TagWithMetadata } from '@/hooks/useTags';
-import { TagSelector } from '@/components/TagSelector';
+import type { TagWithMetadata } from '@/features/tags';
+import { TagSelector } from '@/features/tags';
 import { cn, getSubtaskId } from '@/lib/utils';
 import { Trash2, Edit2, Check, X } from 'lucide-react';
 import { useState } from 'react';

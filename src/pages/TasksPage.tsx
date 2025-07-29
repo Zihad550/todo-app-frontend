@@ -1,7 +1,3 @@
-import { KanbanBoard } from '@/components/KanbanBoard';
-import { TaskFilters } from '@/components/TaskFilters';
-import { TaskForm } from '@/components/TaskForm';
-import { TaskList } from '@/components/TaskList';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -10,9 +6,15 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useTags } from '@/hooks/useTags';
-import { useTaskFilters } from '@/hooks/useTaskFilters';
-import { useTasks } from '@/hooks/useTasks';
+import {
+  KanbanBoard,
+  TaskFilters,
+  TaskForm,
+  TaskList,
+  useTasks,
+  useTaskFilters,
+} from '@/features/tasks';
+import { useTags } from '@/features/tags';
 
 import type { CreateTaskInput, Task, UpdateTaskInput } from '@/types/task';
 import { TaskStatus } from '@/types/task';

@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import type { Subtask } from '@/types/task';
-import type { TagWithMetadata } from '@/hooks/useTags';
+import type { TagWithMetadata } from '@/features/tags';
 import { cn, getSubtaskId } from '@/lib/utils';
 import { Plus, Check, X } from 'lucide-react';
 import { useState } from 'react';

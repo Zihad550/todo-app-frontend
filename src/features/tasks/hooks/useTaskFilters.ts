@@ -1,5 +1,5 @@
-import { useFilters } from './useFilters';
-import { useTags } from './useTags';
+import { useFilters } from '@/hooks/useFilters';
+import { useTags } from '@/features/tags';
 import type { Task } from '@/types/task';
 
 export const useTaskFilters = (tasks: Task[]) => {

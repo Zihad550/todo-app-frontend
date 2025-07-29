@@ -1,6 +1,6 @@
 import { toast } from 'sonner';
 import { useUpdateTaskMutation } from '@/redux/features/taskApi';
-import { useTasks } from '@/hooks/useTasks';
+import { useTasks } from './useTasks';
 import { getSubtaskId } from '@/lib/utils';
 import type {
   CreateSubtaskInput,

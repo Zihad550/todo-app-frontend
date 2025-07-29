@@ -14,7 +14,7 @@ import {
 } from '@dnd-kit/sortable';
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import type { Task, UpdateTaskInput } from '@/types/task';
-import type { TagWithMetadata } from '@/hooks/useTags';
+import type { TagWithMetadata } from '@/features/tags';
 import { TaskItem } from './TaskItem';
 
 interface TaskListProps {

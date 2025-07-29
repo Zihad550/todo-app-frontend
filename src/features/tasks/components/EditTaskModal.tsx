@@ -5,9 +5,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { TaskForm } from '@/components/TaskForm';
+import { TaskForm } from './TaskForm';
 import type { Task, CreateTaskInput, UpdateTaskInput } from '@/types/task';
-import type { TagWithMetadata } from '@/hooks/useTags';
+import type { TagWithMetadata } from '@/features/tags';
 
 interface EditTaskModalProps {
   task: Task | null;

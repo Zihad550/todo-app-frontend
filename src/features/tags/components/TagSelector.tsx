@@ -17,7 +17,7 @@ import {
 import { Check, ChevronDown, X, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-import type { TagWithMetadata } from '@/hooks/useTags';
+import type { TagWithMetadata } from '../hooks/useTags';
 
 interface TagSelectorProps {
   selectedTags: string[];

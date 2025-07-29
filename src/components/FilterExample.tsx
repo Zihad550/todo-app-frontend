@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import { TaskFilters } from '@/components/TaskFilters';
+import { TaskFilters } from '@/features/tasks';
 import { useFilters } from '@/hooks/useFilters';
-import { useTags } from '@/hooks/useTags';
+import { useTags } from '@/features/tags';
 import type { Task } from '@/types/task';
 
 interface FilterExampleProps {

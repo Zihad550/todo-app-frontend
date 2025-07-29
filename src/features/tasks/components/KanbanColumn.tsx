@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { KanbanCard } from './KanbanCard';
 import type { Task, TaskStatus } from '@/types/task';
-import type { TagWithMetadata } from '@/hooks/useTags';
+import type { TagWithMetadata } from '@/features/tags';
 
 interface KanbanColumnProps {
   id: TaskStatus;

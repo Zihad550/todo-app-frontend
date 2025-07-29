@@ -11,10 +11,10 @@ import {
 } from '@/components/ui/select';
 import { Edit, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import type { Task } from '@/types/task';
-import type { TagWithMetadata } from '@/hooks/useTags';
+import type { TagWithMetadata } from '@/features/tags';
 import { TaskStatus } from '@/types/task';
 import { useState } from 'react';
-import { EditTaskModal } from '@/components/EditTaskModal';
+import { EditTaskModal } from './EditTaskModal';
 import { SubtaskListCompact } from './SubtaskListCompact';
 import { getSubtaskId } from '@/lib/utils';
 

@@ -1,12 +1,12 @@
 import { createBrowserRouter } from 'react-router';
-import { TasksPage } from '@/components/TasksPage';
-import { TagsPage } from '@/components/TagsPage';
-import { StatisticsPage } from '@/components/StatisticsPage';
+import { TasksPage } from '@/pages/TasksPage';
+import { TagsPage } from '@/pages/TagsPage';
+import { StatisticsPage } from '@/pages/StatisticsPage';
 import { RootLayout } from '@/components/RootLayout';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { tasksLoader } from '@/loaders/taskLoaders';
-import { tagsLoader } from '@/loaders/tagLoaders';
-import { statisticsLoader } from '@/loaders/statisticsLoaders';
+import { tasksLoader } from '@/features/tasks';
+import { tagsLoader } from '@/features/tags';
+import { statisticsLoader } from '@/features/statistics';
 
 export const router = createBrowserRouter([
   {

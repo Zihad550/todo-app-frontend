@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { TagSelector } from '@/components/TagSelector';
+import { TagSelector } from '@/features/tags';
 import type { CreateTaskInput, CreateSubtaskInput } from '@/types/task';
-import type { TagWithMetadata } from '@/hooks/useTags';
+import type { TagWithMetadata } from '@/features/tags';
 import { Plus, X } from 'lucide-react';
 
 interface TaskFormProps {
