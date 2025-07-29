@@ -73,11 +73,12 @@ export function SubtaskListCompact({
           />
           <span
             className={cn(
-              'flex-1',
+              'flex-1 cursor-pointer hover:text-foreground transition-colors',
               isMobile ? 'text-xs' : 'text-xs',
               subtask.completed && 'line-through'
             )}
             title={subtask.title}
+            onClick={() => handleToggle(subtask)}
           >
             {subtask.title}
           </span>
