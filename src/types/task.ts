@@ -48,6 +48,8 @@ export interface CreateTaskInput {
   tags: string[];
   position?: number;
   subtasks?: CreateSubtaskInput[];
+  status?: TaskStatus;
+  completed?: boolean;
 }
 
 export interface UpdateTaskInput {

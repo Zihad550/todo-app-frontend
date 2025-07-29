@@ -1,3 +1,5 @@
+import type { IResponseRedux } from "@/types/apiResponse.types";
+import type { ITag } from "@/types/tag";
 import { baseApi } from "../api/baseApi";
 import { TagTypes } from "../tag.types";
 
@@ -27,13 +29,11 @@ const tagApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: [TagTypes.Tag],
     }),
-    getAllTags: build.query({
-      query: () => {
-        return {
-          url: "/tags",
-          method: "GET",
-        };
-      },
+    getAllTags: build.query<IResponseRedux<ITag[]>, undefined>({
+      query: () => ({
+        url: "/tags",
+        method: "GET",
+      }),
       providesTags: [TagTypes.Tag],
     }),
   }),

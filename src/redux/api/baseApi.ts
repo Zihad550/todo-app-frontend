@@ -1,9 +1,7 @@
 import {
   createApi,
   fetchBaseQuery,
-  type BaseQueryApi,
   type BaseQueryFn,
-  type DefinitionType,
   type FetchArgs,
 } from '@reduxjs/toolkit/query/react';
 import { TagTypes } from '../tag.types';
@@ -24,28 +22,10 @@ const baseQuery = fetchBaseQuery({
 
 const testBaseQuery: BaseQueryFn<
   FetchArgs,
-  BaseQueryApi,
-  DefinitionType
+  unknown,
+  {}
 > = async (args, api, extraOptions) => {
   const results = await baseQuery(args, api, extraOptions);
-
-  // if (Array.isArray(results.data?.data)) {
-  //   const data = results?.data?.data;
-  //   const formatted = data?.map((item: unknown) => ({
-  //     ...item,
-  //     createdAt: new Date(item.createdAt),
-  //     updatedAt: new Date(item.updatedAt),
-  //   }));
-
-  //   const res = {
-  //     ...results,
-  //     data: {
-  //       ...results?.data,
-  //       data: formatted,
-  //     },
-  //   };
-  //   return res;
-  // }
   return results;
 };
 

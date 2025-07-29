@@ -14,7 +14,7 @@ import { toast } from "sonner";
 export const useTasks = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
 
-  const { data: apiTasks, isLoading, error } = useGetAllTasksQuery({});
+  const { data: apiTasks, isLoading, error } = useGetAllTasksQuery();
   // Redux API hooks
   const [createTaskMutation] = useCreateTaskMutation();
   const [updateTaskMutation] = useUpdateTaskMutation();

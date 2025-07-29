@@ -24,3 +24,20 @@ export interface IResponse<T> {
 }
 
 export interface IResponseRedux<T> extends IResponse<T>, BaseQueryApi {}
+
+export interface ITag {
+  id: string;
+  name: string;
+  color: string;
+}
+
+export interface CreateTagRequest {
+  name: string;
+  color: string;
+}
+
+export interface UpdateTagRequest {
+  id: string;
+  name?: string;
+  color?: string;
+}
