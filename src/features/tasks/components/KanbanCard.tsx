@@ -192,7 +192,7 @@ export function KanbanCard({
 
         {task.description && (
           <p
-            className={`text-muted-foreground line-clamp-2 ${
+            className={`text-muted-foreground ${
               isMobile ? 'text-sm mb-3' : 'text-xs mb-2'
             }`}
           >
