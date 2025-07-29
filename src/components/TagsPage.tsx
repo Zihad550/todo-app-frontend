@@ -1,18 +1,16 @@
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { useTags, type CreateTagInput } from "@/hooks/useTags";
-import { useTasks } from "@/hooks/useTasks";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { useTags, type CreateTagInput } from '@/hooks/useTags';
+import { useTasks } from '@/hooks/useTasks';
+import { cn } from '@/lib/utils';
 import {
-  ArrowLeft,
   Edit2,
   Hash,
   Palette,
@@ -20,9 +18,9 @@ import {
   Tag as TagIcon,
   Trash2,
   TrendingUp,
-} from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
+} from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface TagFormProps {
   onSubmit: (input: CreateTagInput) => void;
@@ -37,13 +35,13 @@ function TagForm({
   initialData,
   defaultColors,
 }: TagFormProps) {
-  const [name, setName] = useState(initialData?.name || "");
+  const [name, setName] = useState(initialData?.name || '');
   const [color, setColor] = useState(initialData?.color || defaultColors[0]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      toast.error("Tag name is required");
+      toast.error('Tag name is required');
       return;
     }
     onSubmit({ name: name.trim(), color });
@@ -73,10 +71,10 @@ function TagForm({
               type="button"
               onClick={() => setColor(colorOption)}
               className={cn(
-                "w-8 h-8 rounded-full border-2 transition-all",
+                'w-8 h-8 rounded-full border-2 transition-all',
                 color === colorOption
-                  ? "border-foreground scale-110"
-                  : "border-border hover:scale-105",
+                  ? 'border-foreground scale-110'
+                  : 'border-border hover:scale-105'
               )}
               style={{ backgroundColor: colorOption }}
             />
@@ -95,7 +93,7 @@ function TagForm({
 
       <div className="flex gap-2 pt-4">
         <Button type="submit" className="flex-1">
-          {initialData ? "Update Tag" : "Create Tag"}
+          {initialData ? 'Update Tag' : 'Create Tag'}
         </Button>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
@@ -105,11 +103,7 @@ function TagForm({
   );
 }
 
-interface TagsPageProps {
-  onBack: () => void;
-}
-
-function TagsPage({ onBack }: TagsPageProps) {
+export function TagsPage() {
   const { tasks } = useTasks();
   const {
     tags,
@@ -128,17 +122,17 @@ function TagsPage({ onBack }: TagsPageProps) {
     name: string;
     color: string;
   } | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [viewMode, setViewMode] = useState<"all" | "unused" | "popular">("all");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'all' | 'unused' | 'popular'>('all');
 
   const handleCreateTag = (input: CreateTagInput) => {
     try {
       createTag(input);
       setShowCreateForm(false);
-      toast.success("Tag created successfully!");
+      toast.success('Tag created successfully!');
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to create tag",
+        error instanceof Error ? error.message : 'Failed to create tag'
       );
     }
   };
@@ -149,10 +143,10 @@ function TagsPage({ onBack }: TagsPageProps) {
     try {
       updateTag(editingTag.id, input);
       setEditingTag(null);
-      toast.success("Tag updated successfully!");
+      toast.success('Tag updated successfully!');
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to update tag",
+        error instanceof Error ? error.message : 'Failed to update tag'
       );
     }
   };
@@ -161,13 +155,13 @@ function TagsPage({ onBack }: TagsPageProps) {
     const usageCount = getTagUsageCount(name);
     if (usageCount > 0) {
       toast.error(
-        `Cannot delete tag "${name}" - it's used by ${usageCount} task(s)`,
+        `Cannot delete tag "${name}" - it's used by ${usageCount} task(s)`
       );
       return;
     }
 
     deleteTag(id);
-    toast.success("Tag deleted successfully!");
+    toast.success('Tag deleted successfully!');
   };
 
   const filteredTags = tags.filter((tag) => {
@@ -176,9 +170,9 @@ function TagsPage({ onBack }: TagsPageProps) {
       .includes(searchTerm.toLowerCase());
 
     switch (viewMode) {
-      case "unused":
+      case 'unused':
         return matchesSearch && getTagUsageCount(tag.name) === 0;
-      case "popular":
+      case 'popular':
         return matchesSearch && getTagUsageCount(tag.name) > 0;
       default:
         return matchesSearch;
@@ -194,11 +188,6 @@ function TagsPage({ onBack }: TagsPageProps) {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={onBack}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Tasks
-            </Button>
-            <div className="h-6 w-px bg-border" />
             <TagIcon className="h-8 w-8 text-primary" />
             <div>
               <h1 className="text-3xl font-bold">Tag Management</h1>
@@ -207,7 +196,6 @@ function TagsPage({ onBack }: TagsPageProps) {
               </p>
             </div>
           </div>
-          <ThemeToggle />
         </div>
 
         {/* Stats Cards */}
@@ -277,24 +265,24 @@ function TagsPage({ onBack }: TagsPageProps) {
 
           <div className="flex border rounded-lg">
             <Button
-              onClick={() => setViewMode("all")}
-              variant={viewMode === "all" ? "default" : "ghost"}
+              onClick={() => setViewMode('all')}
+              variant={viewMode === 'all' ? 'default' : 'ghost'}
               size="sm"
               className="rounded-r-none"
             >
               All ({tags.length})
             </Button>
             <Button
-              onClick={() => setViewMode("popular")}
-              variant={viewMode === "popular" ? "default" : "ghost"}
+              onClick={() => setViewMode('popular')}
+              variant={viewMode === 'popular' ? 'default' : 'ghost'}
               size="sm"
               className="rounded-none"
             >
               Used ({tags.length - unusedTags.length})
             </Button>
             <Button
-              onClick={() => setViewMode("unused")}
-              variant={viewMode === "unused" ? "default" : "ghost"}
+              onClick={() => setViewMode('unused')}
+              variant={viewMode === 'unused' ? 'default' : 'ghost'}
               size="sm"
               className="rounded-l-none"
             >
@@ -307,7 +295,7 @@ function TagsPage({ onBack }: TagsPageProps) {
         <div className="space-y-2">
           {filteredTags.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
-              {searchTerm ? "No tags match your search" : "No tags found"}
+              {searchTerm ? 'No tags match your search' : 'No tags found'}
             </div>
           ) : (
             filteredTags.map((tag) => {
@@ -325,7 +313,7 @@ function TagsPage({ onBack }: TagsPageProps) {
                     <div>
                       <span className="font-medium">{tag.name}</span>
                       <p className="text-sm text-muted-foreground">
-                        Used in {usageCount} task{usageCount !== 1 ? "s" : ""}
+                        Used in {usageCount} task{usageCount !== 1 ? 's' : ''}
                       </p>
                     </div>
                   </div>
@@ -393,5 +381,3 @@ function TagsPage({ onBack }: TagsPageProps) {
     </div>
   );
 }
-
-export { TagsPage };

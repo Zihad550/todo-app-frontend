@@ -1,19 +1,17 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { Provider } from "react-redux";
-import App from "./App.tsx";
-import { ThemeProvider } from "./components/ThemeProvider.tsx";
-import { Toaster } from "./components/ui/sonner.tsx";
-import "./index.css";
-import { store } from "./redux/store.ts";
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { Provider } from 'react-redux';
+import { RouterProvider } from 'react-router';
+import { router } from '@/routes';
+import { Toaster } from '@/components/ui/sonner';
+import './index.css';
+import { store } from '@/redux/store';
 
-createRoot(document.getElementById("root")!).render(
+createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
-      <ThemeProvider defaultTheme="system" storageKey="todo-app-theme">
-        <App />
-        <Toaster />
-      </ThemeProvider>
+      <RouterProvider router={router} />
+      <Toaster />
     </Provider>
-  </StrictMode>,
+  </StrictMode>
 );

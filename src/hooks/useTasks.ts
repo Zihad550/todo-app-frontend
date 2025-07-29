@@ -1,18 +1,18 @@
-import { getSubtaskId } from "@/lib/utils";
+import { getSubtaskId } from '@/lib/utils';
 import {
   useCreateTaskMutation,
   useDeleteTaskMutation,
   useGetAllTasksQuery,
   useUpdateTaskMutation,
-} from "@/redux/features/taskApi";
-import type { CreateTaskInput, Task, UpdateTaskInput } from "@/types/task";
-import { TaskStatus } from "@/types/task";
-import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
+} from '@/redux/features/taskApi';
+import type { CreateTaskInput, Task, UpdateTaskInput } from '@/types/task';
+import { TaskStatus } from '@/types/task';
+import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 // Default sample tasks for development/demo purposes
-export const useTasks = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
+export const useTasks = (initialTasks?: Task[]) => {
+  const [tasks, setTasks] = useState<Task[]>(initialTasks || []);
 
   const { data: apiTasks, isLoading, error } = useGetAllTasksQuery();
   // Redux API hooks
@@ -27,11 +27,11 @@ export const useTasks = () => {
 
       console.log(sorted);
       setTasks(sorted);
-    } else if (error) {
-      // If API fails, keep using default tasks
-      console.warn("API not available, using default tasks:", error);
+    } else if (error && !initialTasks) {
+      // If API fails and no initial tasks provided, keep using default tasks
+      console.warn('API not available, using default tasks:', error);
     }
-  }, [apiTasks, error]);
+  }, [apiTasks, error, initialTasks]);
 
   const updateTask = useCallback(
     async (id: string, updates: UpdateTaskInput) => {
@@ -63,11 +63,11 @@ export const useTasks = () => {
 
         await updateTaskMutation({ id, data: updates });
       } catch (error) {
-        toast.error("Failed to update task");
+        toast.error('Failed to update task');
         throw error;
       }
     },
-    [updateTaskMutation],
+    [updateTaskMutation]
   );
 
   const deleteTask = useCallback(
@@ -83,42 +83,42 @@ export const useTasks = () => {
         // API call with correct payload format
         await deleteTaskMutation({ id }).unwrap();
 
-        toast.success("Task deleted successfully");
+        toast.success('Task deleted successfully');
       } catch (error) {
         // Revert optimistic update on error
         setTasks((prev) => [...prev, originalTask]);
-        toast.error("Failed to delete task");
+        toast.error('Failed to delete task');
         throw error;
       }
     },
-    [tasks, deleteTaskMutation],
+    [tasks, deleteTaskMutation]
   );
 
   const toggleTask = useCallback(
     (id: string) => {
       updateTask(id, { completed: !tasks.find((t) => t.id === id)?.completed });
     },
-    [tasks, updateTask],
+    [tasks, updateTask]
   );
 
   const moveTask = useCallback(
     (id: string, newStatus: TaskStatus) => {
       updateTask(id, { status: newStatus });
     },
-    [updateTask],
+    [updateTask]
   );
 
   const createTask = useCallback(
     async (data: CreateTaskInput) => {
       try {
         await createTaskMutation(data).unwrap();
-        toast.success("Task created successfully");
+        toast.success('Task created successfully');
       } catch (error) {
-        toast.error("Failed to create task");
+        toast.error('Failed to create task');
         throw error;
       }
     },
-    [createTaskMutation],
+    [createTaskMutation]
   );
 
   const reorderTasks = useCallback((newTasks: Task[]) => {
@@ -143,20 +143,20 @@ export const useTasks = () => {
 
       try {
         await updateTask(taskId, { subtasks: updatedSubtasks });
-        toast.success("Subtask added successfully");
+        toast.success('Subtask added successfully');
       } catch (error) {
-        toast.error("Failed to add subtask");
+        toast.error('Failed to add subtask');
         throw error;
       }
     },
-    [tasks, updateTask],
+    [tasks, updateTask]
   );
 
   const updateSubtask = useCallback(
     async (
       taskId: string,
       subtaskId: string,
-      updates: { title?: string; tag?: string; completed?: boolean },
+      updates: { title?: string; tag?: string; completed?: boolean }
     ) => {
       const task = tasks.find((t) => t.id === taskId);
       if (!task) return;
@@ -164,18 +164,18 @@ export const useTasks = () => {
       const updatedSubtasks = task.subtasks.map((subtask) =>
         getSubtaskId(subtask) === subtaskId
           ? { ...subtask, ...updates, updatedAt: new Date() }
-          : subtask,
+          : subtask
       );
 
       try {
         await updateTask(taskId, { subtasks: updatedSubtasks });
-        toast.success("Subtask updated successfully");
+        toast.success('Subtask updated successfully');
       } catch (error) {
-        toast.error("Failed to update subtask");
+        toast.error('Failed to update subtask');
         throw error;
       }
     },
-    [tasks, updateTask],
+    [tasks, updateTask]
   );
 
   const deleteSubtask = useCallback(
@@ -184,18 +184,18 @@ export const useTasks = () => {
       if (!task) return;
 
       const updatedSubtasks = task.subtasks.filter(
-        (subtask) => getSubtaskId(subtask) !== subtaskId,
+        (subtask) => getSubtaskId(subtask) !== subtaskId
       );
 
       try {
         await updateTask(taskId, { subtasks: updatedSubtasks });
-        toast.success("Subtask deleted successfully");
+        toast.success('Subtask deleted successfully');
       } catch (error) {
-        toast.error("Failed to delete subtask");
+        toast.error('Failed to delete subtask');
         throw error;
       }
     },
-    [tasks, updateTask],
+    [tasks, updateTask]
   );
 
   const toggleSubtask = useCallback(
@@ -208,7 +208,7 @@ export const useTasks = () => {
 
       await updateSubtask(taskId, subtaskId, { completed: !subtask.completed });
     },
-    [tasks, updateSubtask],
+    [tasks, updateSubtask]
   );
 
   return {

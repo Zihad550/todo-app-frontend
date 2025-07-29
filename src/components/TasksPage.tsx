@@ -2,7 +2,6 @@ import { KanbanBoard } from '@/components/KanbanBoard';
 import { TaskFilters } from '@/components/TaskFilters';
 import { TaskForm } from '@/components/TaskForm';
 import { TaskList } from '@/components/TaskList';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -17,29 +16,15 @@ import { useTasks } from '@/hooks/useTasks';
 
 import type { CreateTaskInput, Task, UpdateTaskInput } from '@/types/task';
 import { TaskStatus } from '@/types/task';
-import {
-  BarChart3,
-  CheckSquare,
-  Filter,
-  LayoutGrid,
-  List,
-  Plus,
-  Tag,
-} from 'lucide-react';
+import { CheckSquare, Filter, LayoutGrid, List, Plus } from 'lucide-react';
 import { useState } from 'react';
+import { useLoaderData } from 'react-router';
 import { toast } from 'sonner';
 
 type ViewMode = 'list' | 'kanban';
 
-interface TasksPageProps {
-  onNavigateToTags: () => void;
-  onNavigateToStatistics: () => void;
-}
-
-function TasksPage({
-  onNavigateToTags,
-  onNavigateToStatistics,
-}: TasksPageProps) {
+export function TasksPage() {
+  const loaderData = useLoaderData() as { tasks: Task[]; filters: any };
   const {
     tasks,
     createTask,
@@ -51,7 +36,7 @@ function TasksPage({
     addSubtask,
     toggleSubtask,
     isLoading: isTasksLoading,
-  } = useTasks();
+  } = useTasks(loaderData.tasks);
 
   const {
     searchTerm,
@@ -168,7 +153,7 @@ function TasksPage({
             <CheckSquare className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
             <div>
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">
-                Todo App
+                Tasks
               </h1>
               <p className="text-sm sm:text-base text-muted-foreground">
                 {totalCount === 0
@@ -190,7 +175,6 @@ function TasksPage({
               </p>
             </div>
           </div>
-          <ThemeToggle />
         </div>
 
         {/* Action Buttons */}
@@ -201,24 +185,6 @@ function TasksPage({
           >
             <Plus className="h-4 w-4 mr-2" />
             Add New Task
-          </Button>
-
-          <Button
-            onClick={onNavigateToTags}
-            variant="outline"
-            className="flex-1 sm:flex-none"
-          >
-            <Tag className="h-4 w-4 mr-2" />
-            Manage Tags
-          </Button>
-
-          <Button
-            onClick={onNavigateToStatistics}
-            variant="outline"
-            className="flex-1 sm:flex-none"
-          >
-            <BarChart3 className="h-4 w-4 mr-2" />
-            Statistics
           </Button>
 
           {tasks.length > 0 && (
@@ -385,5 +351,3 @@ function TasksPage({
     </div>
   );
 }
-
-export { TasksPage };

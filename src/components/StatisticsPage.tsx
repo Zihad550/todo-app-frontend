@@ -1,13 +1,10 @@
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useTags } from '@/hooks/useTags';
 import { useTasks } from '@/hooks/useTasks';
 import { TaskStatus } from '@/types/task';
 import {
-  ArrowLeft,
   BarChart3,
   Calendar,
   CheckCircle,
@@ -17,10 +14,6 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { useMemo } from 'react';
-
-interface StatisticsPageProps {
-  onBack: () => void;
-}
 
 interface StatusStats {
   backlog: number;
@@ -43,7 +36,7 @@ interface TimeStats {
   older: number;
 }
 
-export function StatisticsPage({ onBack }: StatisticsPageProps) {
+export function StatisticsPage() {
   const { tasks } = useTasks();
   const { tags } = useTags(tasks);
   const stats = useMemo(() => {
@@ -146,7 +139,7 @@ export function StatisticsPage({ onBack }: StatisticsPageProps) {
       recentActivity,
       avgCompletionDays,
     };
-  }, [tasks]);
+  }, [tags, tasks]);
 
   const getStatusColor = (status: TaskStatus): string => {
     switch (status) {
@@ -184,10 +177,6 @@ export function StatisticsPage({ onBack }: StatisticsPageProps) {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <Button onClick={onBack} variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
             <div className="flex items-center gap-2">
               <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
               <div>
@@ -200,7 +189,6 @@ export function StatisticsPage({ onBack }: StatisticsPageProps) {
               </div>
             </div>
           </div>
-          <ThemeToggle />
         </div>
 
         {stats.totalTasks === 0 ? (
