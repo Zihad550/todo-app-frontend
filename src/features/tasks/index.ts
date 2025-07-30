@@ -1,5 +1,6 @@
 // Components
 export { TaskForm } from './components/TaskForm';
+export { InlineTaskForm } from './components/InlineTaskForm';
 export { TaskList } from './components/TaskList';
 export { TaskItem } from './components/TaskItem';
 export { TaskFilters } from './components/TaskFilters';

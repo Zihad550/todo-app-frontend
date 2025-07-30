@@ -8,12 +8,13 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import type { TagWithMetadata } from '@/features/tags';
 import { useUpdateTaskMutation } from '@/redux/features/taskApi';
-import type { Task } from '@/types/task';
+import type { Task, CreateTaskInput } from '@/types/task';
 import { TaskStatus } from '@/types/task';
+import { cn } from '@/lib/utils';
 import { KanbanCard } from './KanbanCard';
 import { KanbanColumn } from './KanbanColumn';
 
@@ -25,8 +26,16 @@ interface KanbanBoardProps {
   onDeleteTask: (id: string) => void;
   onAddSubtask: (taskId: string, title: string, tag?: string) => Promise<void>;
   onToggleSubtask: (taskId: string, subtaskId: string) => Promise<void>;
+  onCreateTask?: (input: CreateTaskInput) => Promise<void>;
+  isCreatingTask?: boolean;
   availableTags?: TagWithMetadata[];
   onCreateTag?: (name: string) => Promise<TagWithMetadata>;
+  /** Column-specific loading states for task creation */
+  columnLoadingStates?: Record<TaskStatus, boolean>;
+  /** Column-specific error states for task creation */
+  columnErrors?: Record<TaskStatus, string | null>;
+  /** Callback to clear column-specific errors */
+  onClearColumnError?: (columnId: TaskStatus) => void;
 }
 
 const columns: { id: TaskStatus; title: string; color: string }[] = [
@@ -60,10 +69,15 @@ interface MobileKanbanViewProps {
   onMoveTask: (taskId: string, newStatus: TaskStatus) => void;
   onAddSubtask: (taskId: string, title: string, tag?: string) => Promise<void>;
   onToggleSubtask: (taskId: string, subtaskId: string) => Promise<void>;
+  onCreateTask?: (input: CreateTaskInput) => Promise<void>;
+  isCreatingTask?: boolean;
   availableTags: TagWithMetadata[];
   onCreateTag?: (name: string) => Promise<TagWithMetadata>;
   collapsedColumns: Set<TaskStatus>;
   onToggleCollapse: (columnId: TaskStatus) => void;
+  columnLoadingStates?: Record<TaskStatus, boolean>;
+  columnErrors?: Record<TaskStatus, string | null>;
+  onClearColumnError?: (columnId: TaskStatus) => void;
 }
 
 function MobileKanbanView({
@@ -74,23 +88,57 @@ function MobileKanbanView({
   onMoveTask,
   onAddSubtask,
   onToggleSubtask,
+  onCreateTask,
+  isCreatingTask,
   availableTags,
   onCreateTag,
   collapsedColumns,
   onToggleCollapse,
+  columnLoadingStates,
+  columnErrors,
+  onClearColumnError,
 }: MobileKanbanViewProps) {
+  // Create column-specific task creation handler
+  const createTaskForColumn = async (
+    columnStatus: TaskStatus,
+    input: CreateTaskInput
+  ) => {
+    if (!onCreateTask) return;
+
+    // Calculate position for the new task in this column
+    const columnTasks = tasksByStatus[columnStatus] || [];
+    const position = columnTasks.length;
+
+    // Create task with column-specific status and position
+    const taskInput: CreateTaskInput = {
+      ...input,
+      status: columnStatus,
+      position,
+      completed: columnStatus === TaskStatus.COMPLETED,
+    };
+
+    await onCreateTask(taskInput);
+  };
+
   return (
     <Tabs defaultValue={TaskStatus.BACKLOG} className="h-full">
-      <TabsList className="grid w-full grid-cols-4 mb-4">
+      {/* Mobile-optimized tab navigation with touch-friendly targets */}
+      <TabsList className="grid w-full grid-cols-4 mb-6 h-16 p-1 bg-muted/50 rounded-xl">
         {columns.map((column) => (
           <TabsTrigger
             key={column.id}
             value={column.id}
-            className="text-xs px-2 py-1"
+            className={cn(
+              'text-sm px-3 py-2 h-full rounded-lg transition-all',
+              'data-[state=active]:bg-background data-[state=active]:shadow-sm',
+              'active:scale-[0.98] transition-transform'
+            )}
           >
-            <div className="flex flex-col items-center">
-              <span className="truncate">{column.title}</span>
-              <span className="text-xs text-muted-foreground">
+            <div className="flex flex-col items-center justify-center h-full">
+              <span className="truncate font-medium leading-tight">
+                {column.title}
+              </span>
+              <span className="text-xs text-muted-foreground mt-0.5">
                 {tasksByStatus[column.id]?.length || 0}
               </span>
             </div>
@@ -99,7 +147,11 @@ function MobileKanbanView({
       </TabsList>
 
       {columns.map((column) => (
-        <TabsContent key={column.id} value={column.id} className="h-full mt-0">
+        <TabsContent
+          key={column.id}
+          value={column.id}
+          className="h-full mt-0 px-1 pb-4"
+        >
           <KanbanColumn
             id={column.id}
             title={column.title}
@@ -110,6 +162,18 @@ function MobileKanbanView({
             onMoveTask={onMoveTask}
             onAddSubtask={onAddSubtask}
             onToggleSubtask={onToggleSubtask}
+            onCreateTask={
+              onCreateTask
+                ? (input) => createTaskForColumn(column.id, input)
+                : undefined
+            }
+            isCreatingTask={columnLoadingStates?.[column.id] || isCreatingTask}
+            taskCreationError={columnErrors?.[column.id]}
+            onClearTaskCreationError={
+              onClearColumnError
+                ? () => onClearColumnError(column.id)
+                : undefined
+            }
             availableTags={availableTags}
             onCreateTag={onCreateTag}
             isCollapsed={collapsedColumns.has(column.id)}
@@ -131,8 +195,13 @@ export function KanbanBoard({
   onDeleteTask,
   onAddSubtask,
   onToggleSubtask,
+  onCreateTask,
+  isCreatingTask = false,
   availableTags = [],
   onCreateTag,
+  columnLoadingStates,
+  columnErrors,
+  onClearColumnError,
 }: KanbanBoardProps) {
   const [updateTaskMutation] = useUpdateTaskMutation();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
@@ -245,6 +314,28 @@ export function KanbanBoard({
     });
   };
 
+  // Create column-specific task creation handler
+  const createTaskForColumn = useCallback(
+    async (columnStatus: TaskStatus, input: CreateTaskInput) => {
+      if (!onCreateTask) return;
+
+      // Calculate position for the new task in this column
+      const columnTasks = tasksByStatus[columnStatus] || [];
+      const position = columnTasks.length;
+
+      // Create task with column-specific status and position
+      const taskInput: CreateTaskInput = {
+        ...input,
+        status: columnStatus,
+        position,
+        completed: columnStatus === TaskStatus.COMPLETED,
+      };
+
+      await onCreateTask(taskInput);
+    },
+    [onCreateTask, tasksByStatus]
+  );
+
   return (
     <DndContext
       sensors={sensors}
@@ -261,10 +352,15 @@ export function KanbanBoard({
           onMoveTask={onMoveTask}
           onAddSubtask={onAddSubtask}
           onToggleSubtask={onToggleSubtask}
+          onCreateTask={onCreateTask}
+          isCreatingTask={isCreatingTask}
           availableTags={availableTags}
           onCreateTag={onCreateTag}
           collapsedColumns={collapsedColumns}
           onToggleCollapse={toggleColumnCollapse}
+          columnLoadingStates={columnLoadingStates}
+          columnErrors={columnErrors}
+          onClearColumnError={onClearColumnError}
         />
       </div>
 
@@ -282,6 +378,20 @@ export function KanbanBoard({
               onDeleteTask={onDeleteTask}
               onAddSubtask={onAddSubtask}
               onToggleSubtask={onToggleSubtask}
+              onCreateTask={
+                onCreateTask
+                  ? (input) => createTaskForColumn(column.id, input)
+                  : undefined
+              }
+              isCreatingTask={
+                columnLoadingStates?.[column.id] || isCreatingTask
+              }
+              taskCreationError={columnErrors?.[column.id]}
+              onClearTaskCreationError={
+                onClearColumnError
+                  ? () => onClearColumnError(column.id)
+                  : undefined
+              }
               availableTags={availableTags}
               onCreateTag={onCreateTag}
               isCollapsed={collapsedColumns.has(column.id)}

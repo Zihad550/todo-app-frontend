@@ -26,7 +26,7 @@ import { toast } from 'sonner';
 type ViewMode = 'list' | 'kanban';
 
 export function TasksPage() {
-  const loaderData = useLoaderData() as { tasks: Task[]; filters: any };
+  const loaderData = useLoaderData() as { tasks: Task[]; filters: unknown };
   const {
     tasks,
     createTask,
@@ -37,7 +37,11 @@ export function TasksPage() {
     reorderTasks,
     addSubtask,
     toggleSubtask,
+    clearColumnError,
     isLoading: isTasksLoading,
+    isCreatingTask,
+    columnLoadingStates,
+    columnErrors,
   } = useTasks(loaderData.tasks);
 
   const {
@@ -67,8 +71,10 @@ export function TasksPage() {
     try {
       await createTask(input);
       setShowForm(false);
+      toast.success('Task created successfully');
     } catch (error) {
-      // Error handling is done in the hook
+      // Error handling is done in the hook and components
+      // Keep form open so user can retry
     }
   };
 
@@ -345,8 +351,13 @@ export function TasksPage() {
             onDeleteTask={handleDeleteTask}
             onAddSubtask={addSubtask}
             onToggleSubtask={toggleSubtask}
+            onCreateTask={handleCreateTask}
+            isCreatingTask={isCreatingTask}
             availableTags={tags}
             onCreateTag={handleCreateTag}
+            columnLoadingStates={columnLoadingStates}
+            columnErrors={columnErrors}
+            onClearColumnError={clearColumnError}
           />
         )}
       </div>

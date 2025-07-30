@@ -13,6 +13,23 @@ import { toast } from 'sonner';
 // Default sample tasks for development/demo purposes
 export const useTasks = (initialTasks?: Task[]) => {
   const [tasks, setTasks] = useState<Task[]>(initialTasks || []);
+  const [isCreatingTask, setIsCreatingTask] = useState(false);
+  const [columnLoadingStates, setColumnLoadingStates] = useState<
+    Record<TaskStatus, boolean>
+  >({
+    [TaskStatus.BACKLOG]: false,
+    [TaskStatus.SCHEDULED]: false,
+    [TaskStatus.PROGRESS]: false,
+    [TaskStatus.COMPLETED]: false,
+  });
+  const [columnErrors, setColumnErrors] = useState<
+    Record<TaskStatus, string | null>
+  >({
+    [TaskStatus.BACKLOG]: null,
+    [TaskStatus.SCHEDULED]: null,
+    [TaskStatus.PROGRESS]: null,
+    [TaskStatus.COMPLETED]: null,
+  });
 
   const { data: apiTasks, isLoading, error } = useGetAllTasksQuery();
   // Redux API hooks
@@ -35,6 +52,13 @@ export const useTasks = (initialTasks?: Task[]) => {
 
   const updateTask = useCallback(
     async (id: string, updates: UpdateTaskInput) => {
+      // Store original task for rollback
+      const originalTask = tasks.find((task) => task.id === id);
+      if (!originalTask) {
+        toast.error('Task not found');
+        return;
+      }
+
       try {
         const updatedTask = {
           ...updates,
@@ -61,13 +85,27 @@ export const useTasks = (initialTasks?: Task[]) => {
           updatedTask.status = TaskStatus.BACKLOG;
         }
 
-        await updateTaskMutation({ id, data: updates });
+        // Optimistic update
+        setTasks((prev) =>
+          prev.map((task) =>
+            task.id === id ? { ...task, ...updatedTask } : task
+          )
+        );
+
+        await updateTaskMutation({ id, data: updates }).unwrap();
       } catch (error) {
-        toast.error('Failed to update task');
+        // Revert optimistic update on error
+        setTasks((prev) =>
+          prev.map((task) => (task.id === id ? originalTask : task))
+        );
+
+        const errorMessage =
+          error instanceof Error ? error.message : 'Failed to update task';
+        toast.error(errorMessage);
         throw error;
       }
     },
-    [updateTaskMutation]
+    [updateTaskMutation, tasks]
   );
 
   const deleteTask = useCallback(
@@ -110,15 +148,63 @@ export const useTasks = (initialTasks?: Task[]) => {
 
   const createTask = useCallback(
     async (data: CreateTaskInput) => {
+      const targetStatus = data.status || TaskStatus.BACKLOG;
+
       try {
-        await createTaskMutation(data).unwrap();
-        toast.success('Task created successfully');
+        // Set loading state for the specific column
+        setIsCreatingTask(true);
+        setColumnLoadingStates((prev) => ({ ...prev, [targetStatus]: true }));
+        setColumnErrors((prev) => ({ ...prev, [targetStatus]: null }));
+
+        // Calculate position if not provided
+        const taskData = { ...data };
+
+        if (taskData.position === undefined) {
+          // Find all tasks with the same status and get the highest position
+          const tasksInStatus = tasks.filter(
+            (task) => task.status === targetStatus
+          );
+          const maxPosition =
+            tasksInStatus.length > 0
+              ? Math.max(...tasksInStatus.map((task) => task.position))
+              : -1;
+
+          // Set position to be at the end of the column
+          taskData.position = maxPosition + 1;
+        }
+
+        // Ensure status is set (default to BACKLOG for backward compatibility)
+        if (!taskData.status) {
+          taskData.status = TaskStatus.BACKLOG;
+        }
+
+        // Sync completed status with task status
+        if (taskData.status === TaskStatus.COMPLETED) {
+          taskData.completed = true;
+        } else if (taskData.completed === undefined) {
+          taskData.completed = false;
+        }
+
+        await createTaskMutation(taskData).unwrap();
+
+        // Success toast is handled by the InlineTaskForm component
+        // to provide more specific feedback about which column the task was created in
       } catch (error) {
-        toast.error('Failed to create task');
+        const errorMessage =
+          error instanceof Error ? error.message : 'Failed to create task';
+
+        // Set error state for the specific column
+        setColumnErrors((prev) => ({ ...prev, [targetStatus]: errorMessage }));
+
+        // Don't show toast here - let the form component handle it for better UX
         throw error;
+      } finally {
+        // Clear loading states
+        setIsCreatingTask(false);
+        setColumnLoadingStates((prev) => ({ ...prev, [targetStatus]: false }));
       }
     },
-    [createTaskMutation]
+    [createTaskMutation, tasks]
   );
 
   const reorderTasks = useCallback((newTasks: Task[]) => {
@@ -129,7 +215,10 @@ export const useTasks = (initialTasks?: Task[]) => {
   const addSubtask = useCallback(
     async (taskId: string, subtaskTitle: string, tag?: string) => {
       const task = tasks.find((t) => t.id === taskId);
-      if (!task) return;
+      if (!task) {
+        toast.error('Task not found');
+        return;
+      }
 
       const newSubtask = {
         title: subtaskTitle,
@@ -145,7 +234,9 @@ export const useTasks = (initialTasks?: Task[]) => {
         await updateTask(taskId, { subtasks: updatedSubtasks });
         toast.success('Subtask added successfully');
       } catch (error) {
-        toast.error('Failed to add subtask');
+        const errorMessage =
+          error instanceof Error ? error.message : 'Failed to add subtask';
+        toast.error(errorMessage);
         throw error;
       }
     },
@@ -159,7 +250,10 @@ export const useTasks = (initialTasks?: Task[]) => {
       updates: { title?: string; tag?: string; completed?: boolean }
     ) => {
       const task = tasks.find((t) => t.id === taskId);
-      if (!task) return;
+      if (!task) {
+        toast.error('Task not found');
+        return;
+      }
 
       const updatedSubtasks = task.subtasks.map((subtask) =>
         getSubtaskId(subtask) === subtaskId
@@ -171,7 +265,9 @@ export const useTasks = (initialTasks?: Task[]) => {
         await updateTask(taskId, { subtasks: updatedSubtasks });
         toast.success('Subtask updated successfully');
       } catch (error) {
-        toast.error('Failed to update subtask');
+        const errorMessage =
+          error instanceof Error ? error.message : 'Failed to update subtask';
+        toast.error(errorMessage);
         throw error;
       }
     },
@@ -181,7 +277,10 @@ export const useTasks = (initialTasks?: Task[]) => {
   const deleteSubtask = useCallback(
     async (taskId: string, subtaskId: string) => {
       const task = tasks.find((t) => t.id === taskId);
-      if (!task) return;
+      if (!task) {
+        toast.error('Task not found');
+        return;
+      }
 
       const updatedSubtasks = task.subtasks.filter(
         (subtask) => getSubtaskId(subtask) !== subtaskId
@@ -191,7 +290,9 @@ export const useTasks = (initialTasks?: Task[]) => {
         await updateTask(taskId, { subtasks: updatedSubtasks });
         toast.success('Subtask deleted successfully');
       } catch (error) {
-        toast.error('Failed to delete subtask');
+        const errorMessage =
+          error instanceof Error ? error.message : 'Failed to delete subtask';
+        toast.error(errorMessage);
         throw error;
       }
     },
@@ -201,15 +302,25 @@ export const useTasks = (initialTasks?: Task[]) => {
   const toggleSubtask = useCallback(
     async (taskId: string, subtaskId: string) => {
       const task = tasks.find((t) => t.id === taskId);
-      if (!task) return;
+      if (!task) {
+        toast.error('Task not found');
+        return;
+      }
 
       const subtask = task.subtasks.find((s) => getSubtaskId(s) === subtaskId);
-      if (!subtask) return;
+      if (!subtask) {
+        toast.error('Subtask not found');
+        return;
+      }
 
       await updateSubtask(taskId, subtaskId, { completed: !subtask.completed });
     },
     [tasks, updateSubtask]
   );
+
+  const clearColumnError = useCallback((columnId: TaskStatus) => {
+    setColumnErrors((prev) => ({ ...prev, [columnId]: null }));
+  }, []);
 
   return {
     createTask,
@@ -222,7 +333,11 @@ export const useTasks = (initialTasks?: Task[]) => {
     updateSubtask,
     deleteSubtask,
     toggleSubtask,
+    clearColumnError,
     isLoading,
+    isCreatingTask,
+    columnLoadingStates,
+    columnErrors,
     tasks,
   };
 };
