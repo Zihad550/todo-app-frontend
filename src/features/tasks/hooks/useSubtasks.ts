@@ -106,11 +106,29 @@ export function useSubtasks(taskId: string) {
     await updateSubtask(subtaskId, { completed: !subtask.completed });
   };
 
+  const reorderSubtasks = async (reorderedSubtasks: Subtask[]) => {
+    if (!task) {
+      toast.error('Task not found');
+      return;
+    }
+
+    try {
+      await updateTaskMutation({
+        id: taskId,
+        data: { subtasks: reorderedSubtasks },
+      }).unwrap();
+    } catch (error) {
+      toast.error('Failed to reorder subtasks');
+      throw error;
+    }
+  };
+
   return {
     subtasks,
     createSubtask,
     updateSubtask,
     deleteSubtask,
     toggleSubtask,
+    reorderSubtasks,
   };
 }

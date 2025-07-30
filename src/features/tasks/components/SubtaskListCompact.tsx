@@ -4,8 +4,25 @@ import { Input } from '@/components/ui/input';
 import type { Subtask } from '@/types/task';
 import type { TagWithMetadata } from '@/features/tags';
 import { cn, getSubtaskId } from '@/lib/utils';
-import { Plus, Check, X } from 'lucide-react';
+import { Plus, Check, X, GripVertical } from 'lucide-react';
 import { useState } from 'react';
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
+import { useSubtasks } from '../hooks/useSubtasks';
 
 interface SubtaskListCompactProps {
   subtasks: Subtask[];
@@ -22,16 +39,55 @@ export function SubtaskListCompact({
   subtasks,
   taskId,
   availableTags = [],
-  onCreateTag: _onCreateTag,
+  onCreateTag,
   onAddSubtask,
   onToggleSubtask,
   className,
   isMobile = false,
 }: SubtaskListCompactProps) {
   // onCreateTag is available for future enhancement but not currently used in compact view
+  void onCreateTag; // Suppress unused variable warning
   const [showAddButton, setShowAddButton] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [newTitle, setNewTitle] = useState('');
+  const [activeSubtask, setActiveSubtask] = useState<Subtask | null>(null);
+
+  const { reorderSubtasks } = useSubtasks(taskId);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const subtask = subtasks.find((s) => getSubtaskId(s) === event.active.id);
+    setActiveSubtask(subtask || null);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveSubtask(null);
+
+    if (!over) return;
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    if (activeId !== overId) {
+      const activeIndex = subtasks.findIndex(
+        (s) => getSubtaskId(s) === activeId
+      );
+      const overIndex = subtasks.findIndex((s) => getSubtaskId(s) === overId);
+
+      if (activeIndex !== -1 && overIndex !== -1) {
+        const reorderedSubtasks = arrayMove(subtasks, activeIndex, overIndex);
+        reorderSubtasks(reorderedSubtasks);
+      }
+    }
+  };
 
   const handleToggle = (subtask: Subtask) => {
     const subtaskId = getSubtaskId(subtask);
@@ -51,51 +107,110 @@ export function SubtaskListCompact({
     setIsAdding(false);
   };
 
+  // Draggable subtask item component
+  function DraggableSubtaskItem({
+    subtask,
+    isDragging = false,
+  }: {
+    subtask: Subtask;
+    isDragging?: boolean;
+  }) {
+    const subtaskId = getSubtaskId(subtask);
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging: isSortableDragging,
+    } = useSortable({
+      id: subtaskId,
+    });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+    };
+
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={cn(
+          'flex items-center gap-2 p-1 rounded-sm group',
+          subtask.completed && 'opacity-60',
+          (isDragging || isSortableDragging) && 'opacity-50 shadow-lg'
+        )}
+      >
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing p-0.5 -ml-0.5 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <GripVertical className="h-2 w-2" />
+        </div>
+        <Checkbox
+          checked={subtask.completed}
+          onCheckedChange={() => handleToggle(subtask)}
+          className="shrink-0 h-3 w-3"
+        />
+        <span
+          className={cn(
+            'flex-1 cursor-pointer hover:text-foreground transition-colors',
+            isMobile ? 'text-xs' : 'text-xs',
+            subtask.completed && 'line-through'
+          )}
+          title={subtask.title}
+          onClick={() => handleToggle(subtask)}
+        >
+          {subtask.title}
+        </span>
+        {subtask.tag &&
+          (() => {
+            const tag = availableTags.find((t) => t.id === subtask.tag);
+            return tag ? (
+              <span className="px-1 py-0.5 text-xs bg-secondary rounded text-muted-foreground shrink-0">
+                {tag.name}
+              </span>
+            ) : null;
+          })()}
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn('space-y-1', className)}
       onMouseEnter={() => setShowAddButton(true)}
       onMouseLeave={() => setShowAddButton(false)}
     >
-      {/* Subtask items */}
-      {subtasks.map((subtask) => (
-        <div
-          key={getSubtaskId(subtask)}
-          className={cn(
-            'flex items-center gap-2 p-1 rounded-sm',
-            subtask.completed && 'opacity-60'
-          )}
+      {/* Subtask items with drag and drop */}
+      {subtasks.length > 0 ? (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
         >
-          <Checkbox
-            checked={subtask.completed}
-            onCheckedChange={() => handleToggle(subtask)}
-            className="shrink-0 h-3 w-3"
-          />
-          <span
-            className={cn(
-              'flex-1 cursor-pointer hover:text-foreground transition-colors',
-              isMobile ? 'text-xs' : 'text-xs',
-              subtask.completed && 'line-through'
-            )}
-            title={subtask.title}
-            onClick={() => handleToggle(subtask)}
+          <SortableContext
+            items={subtasks.map((s) => getSubtaskId(s))}
+            strategy={verticalListSortingStrategy}
           >
-            {subtask.title}
-          </span>
-          {subtask.tag &&
-            (() => {
-              const tag = availableTags.find((t) => t.id === subtask.tag);
-              return tag ? (
-                <span
-                  key={`tag-${getSubtaskId(subtask)}`}
-                  className="px-1 py-0.5 text-xs bg-secondary rounded text-muted-foreground shrink-0"
-                >
-                  {tag.name}
-                </span>
-              ) : null;
-            })()}
-        </div>
-      ))}
+            {subtasks.map((subtask) => (
+              <DraggableSubtaskItem
+                key={getSubtaskId(subtask)}
+                subtask={subtask}
+              />
+            ))}
+          </SortableContext>
+
+          <DragOverlay>
+            {activeSubtask ? (
+              <DraggableSubtaskItem subtask={activeSubtask} isDragging={true} />
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      ) : null}
 
       {/* Add subtask section */}
       {isAdding && (

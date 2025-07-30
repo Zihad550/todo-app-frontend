@@ -6,8 +6,10 @@ import type { Subtask } from '@/types/task';
 import type { TagWithMetadata } from '@/features/tags';
 import { TagSelector } from '@/features/tags';
 import { cn, getSubtaskId } from '@/lib/utils';
-import { Trash2, Edit2, Check, X } from 'lucide-react';
+import { Trash2, Edit2, Check, X, GripVertical } from 'lucide-react';
 import { useState } from 'react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface SubtaskItemProps {
   subtask: Subtask;
@@ -15,6 +17,8 @@ interface SubtaskItemProps {
   availableTags?: TagWithMetadata[];
   onCreateTag?: (name: string) => Promise<TagWithMetadata>;
   className?: string;
+  isDraggable?: boolean;
+  isDragging?: boolean;
 }
 
 export function SubtaskItem({
@@ -23,6 +27,8 @@ export function SubtaskItem({
   availableTags = [],
   onCreateTag,
   className,
+  isDraggable = false,
+  isDragging = false,
 }: SubtaskItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(subtask.title);
@@ -32,9 +38,26 @@ export function SubtaskItem({
 
   const { toggleSubtask, updateSubtask, deleteSubtask } = useSubtasks(taskId);
 
+  const subtaskId = getSubtaskId(subtask);
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging: isSortableDragging,
+  } = useSortable({
+    id: subtaskId,
+    disabled: !isDraggable || isEditing,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
   const handleSave = async () => {
     if (editTitle.trim()) {
-      const subtaskId = getSubtaskId(subtask);
       await updateSubtask(subtaskId, {
         title: editTitle.trim(),
         tag: editTag[0] || undefined,
@@ -50,23 +73,33 @@ export function SubtaskItem({
   };
 
   const handleToggle = () => {
-    const subtaskId = getSubtaskId(subtask);
     toggleSubtask(subtaskId);
   };
 
   const handleDelete = () => {
-    const subtaskId = getSubtaskId(subtask);
     deleteSubtask(subtaskId);
   };
 
   return (
     <div
+      ref={setNodeRef}
+      style={style}
       className={cn(
         'flex items-center gap-2 p-2 rounded-md border bg-card',
         subtask.completed && 'opacity-60',
+        (isDragging || isSortableDragging) && 'opacity-50 shadow-lg',
         className
       )}
     >
+      {isDraggable && !isEditing && (
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing p-1 -ml-1 text-muted-foreground hover:text-foreground"
+        >
+          <GripVertical className="h-3 w-3" />
+        </div>
+      )}
       <Checkbox
         checked={subtask.completed}
         onCheckedChange={handleToggle}
